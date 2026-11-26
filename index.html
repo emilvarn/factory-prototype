@@ -1,0 +1,1908 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}</style>
+<title>Factory Prototype</title>
+<style>
+/* Layout: T3 Code look. Top bar over three columns (projects | feed, tasks, inbox | open thread); one column at a time on phones. */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Inter Variable", "Inter", "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --bg-outer: #f4f4f5;
+  --bg: oklch(99.2% 0 0);
+  --sidebar: #f7f7f8;
+  --fg: #18181b;
+  --card: #ffffff;
+  --popover: #ffffff;
+  --primary: oklch(0.488 0.217 264);
+  --primary-fg: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-hover: #e9e9ec;
+  --muted-fg: #71717a;
+  --faint-fg: #a1a1aa;
+  --border: #e4e4e7;
+  --input: #d4d4d8;
+  --ring: oklch(0.488 0.217 264);
+  --bubble: #f0f0f2;
+  --info: #3b82f6;
+  --info-fg: #1d4ed8;
+  --info-surface: color-mix(in srgb, #3b82f6 9%, transparent);
+  --success: #10b981;
+  --success-fg: #047857;
+  --success-surface: color-mix(in srgb, #10b981 10%, transparent);
+  --warning: #f59e0b;
+  --warning-fg: #b45309;
+  --warning-surface: color-mix(in srgb, #f59e0b 10%, transparent);
+  --warning-border: color-mix(in srgb, #f59e0b 45%, transparent);
+  --error-fg: #b91c1c;
+  --mention-bg: color-mix(in srgb, oklch(0.488 0.217 264) 10%, transparent);
+  --mention-fg: oklch(0.488 0.217 264);
+  --scrim: rgb(9 9 11 / 0.5);
+  --scrim-light: rgb(9 9 11 / 0.18);
+  --shadow-pop: 0 12px 32px -12px rgb(0 0 0 / 0.22), 0 2px 6px rgb(0 0 0 / 0.06);
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05);
+  --on-color: #ffffff;
+  --av-emil: #2563eb;
+  --av-masha: #0d9488;
+  --av-kai: #c2410c;
+  --av-alfred: #7c3aed;
+  --av-executor: #475569;
+  --av-reviewer: #be185d;
+  --av-assistant: #0e7490;
+  --claude: #d97757;
+  --codex: #18181b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg-outer: #000000;
+    --bg: #070708;
+    --sidebar: #0c0c0e;
+    --fg: #f1f3f7;
+    --card: #0f0f11;
+    --popover: #151518;
+    --primary: oklch(0.571 0.21 264);
+    --primary-fg: #ffffff;
+    --secondary: rgb(255 255 255 / 0.05);
+    --secondary-hover: rgb(255 255 255 / 0.09);
+    --muted-fg: #a3a3a3;
+    --faint-fg: #737373;
+    --border: rgb(255 255 255 / 0.09);
+    --input: rgb(255 255 255 / 0.16);
+    --ring: oklch(0.62 0.2 264);
+    --bubble: rgb(255 255 255 / 0.08);
+    --info-fg: #60a5fa;
+    --info-surface: color-mix(in srgb, #3b82f6 16%, transparent);
+    --success-fg: #34d399;
+    --success-surface: color-mix(in srgb, #10b981 16%, transparent);
+    --warning-fg: #fbbf24;
+    --warning-surface: color-mix(in srgb, #f59e0b 14%, transparent);
+    --warning-border: color-mix(in srgb, #f59e0b 40%, transparent);
+    --error-fg: #f87171;
+    --mention-bg: color-mix(in srgb, oklch(0.62 0.2 264) 22%, transparent);
+    --mention-fg: #93b4ff;
+    --scrim: rgb(0 0 0 / 0.66);
+    --scrim-light: rgb(0 0 0 / 0.3);
+    --shadow-pop: 0 16px 40px -12px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.06);
+    --shadow-card: 0 0 0 0 transparent;
+    --codex: #e5e5e5;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg-outer: #000000;
+  --bg: #070708;
+  --sidebar: #0c0c0e;
+  --fg: #f1f3f7;
+  --card: #0f0f11;
+  --popover: #151518;
+  --primary: oklch(0.571 0.21 264);
+  --primary-fg: #ffffff;
+  --secondary: rgb(255 255 255 / 0.05);
+  --secondary-hover: rgb(255 255 255 / 0.09);
+  --muted-fg: #a3a3a3;
+  --faint-fg: #737373;
+  --border: rgb(255 255 255 / 0.09);
+  --input: rgb(255 255 255 / 0.16);
+  --ring: oklch(0.62 0.2 264);
+  --bubble: rgb(255 255 255 / 0.08);
+  --info-fg: #60a5fa;
+  --info-surface: color-mix(in srgb, #3b82f6 16%, transparent);
+  --success-fg: #34d399;
+  --success-surface: color-mix(in srgb, #10b981 16%, transparent);
+  --warning-fg: #fbbf24;
+  --warning-surface: color-mix(in srgb, #f59e0b 14%, transparent);
+  --warning-border: color-mix(in srgb, #f59e0b 40%, transparent);
+  --error-fg: #f87171;
+  --mention-bg: color-mix(in srgb, oklch(0.62 0.2 264) 22%, transparent);
+  --mention-fg: #93b4ff;
+  --scrim: rgb(0 0 0 / 0.66);
+  --scrim-light: rgb(0 0 0 / 0.3);
+  --shadow-pop: 0 16px 40px -12px rgb(0 0 0 / 0.8), 0 0 0 1px rgb(255 255 255 / 0.06);
+  --shadow-card: 0 0 0 0 transparent;
+  --codex: #e5e5e5;
+  color-scheme: dark;
+}
+
+html { height: 100%; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  height: 100%; margin: 0; background: var(--bg-outer); color: var(--fg);
+  font: 14px/1.45 var(--font-sans); -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 6px; }
+.tnum, time, .count, .t-time { font-variant-numeric: tabular-nums; }
+svg.i { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+svg.i.sm { width: 14px; height: 14px; }
+svg.i.xs { width: 12px; height: 12px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Shell and app frame */
+.shell {
+  height: 100%; display: flex;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 12px;
+}
+.app {
+  flex: 1; min-width: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; position: relative;
+}
+
+/* Top bar */
+.top { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 10px; border-bottom: 1px solid var(--border); background: var(--bg); min-width: 0; }
+.toggles { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; flex: none; }
+.toggles button { width: 28px; height: 24px; display: grid; place-items: center; border-radius: 6px; color: var(--faint-fg); }
+.toggles button[aria-pressed="true"] { color: var(--fg); background: var(--secondary); }
+.toggles button:hover { color: var(--fg); }
+.search { flex: 1; min-width: 0; max-width: 520px; margin: 0 auto; height: 32px; display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  border-radius: 8px; background: var(--secondary); color: var(--muted-fg); text-align: left; }
+.search:hover { background: var(--secondary-hover); }
+.search span.lbl { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.kbd { font-size: 11px; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; color: var(--muted-fg); background: var(--bg); }
+.top-right { display: flex; align-items: center; gap: 6px; flex: none; }
+.btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--card); color: var(--fg); font-size: 13px; white-space: nowrap; box-shadow: var(--shadow-card); }
+.btn:hover:not(:disabled) { background: var(--secondary); }
+.btn.sm { height: 26px; padding: 0 8px; font-size: 12px; }
+.btn.primary { background: var(--primary); color: var(--primary-fg); border-color: transparent; }
+.btn.primary:hover:not(:disabled) { background: var(--primary); filter: brightness(1.08); }
+.btn.ghost { border-color: transparent; background: transparent; box-shadow: none; color: var(--muted-fg); }
+.btn.ghost:hover:not(:disabled) { color: var(--fg); background: var(--secondary); }
+.btn:disabled { opacity: .5; }
+.ibtn { width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 7px; color: var(--muted-fg); flex: none; }
+.ibtn:hover { color: var(--fg); background: var(--secondary); }
+.seg { display: inline-flex; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); flex: none; }
+.seg button { height: 24px; padding: 0 8px; border-radius: 6px; color: var(--muted-fg); font-size: 12px; display: inline-flex; align-items: center; gap: 5px; }
+.seg button[aria-pressed="true"] { background: var(--secondary); color: var(--fg); }
+.seg button:hover { color: var(--fg); }
+.seg.icons button { width: 26px; padding: 0; justify-content: center; }
+.who-seg button { padding: 0 8px 0 3px; }
+
+/* Avatars */
+.av { width: 20px; height: 20px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 10px; font-weight: 600; color: var(--on-color); flex: none; }
+.av.md { width: 24px; height: 24px; font-size: 11px; }
+.av.agent { border-radius: 6px; }
+.avs { display: inline-flex; }
+.avs .av { border: 2px solid var(--card); margin-left: -6px; width: 22px; height: 22px; }
+.avs .av:first-child { margin-left: 0; }
+
+/* Columns */
+.cols { display: flex; min-height: 0; min-width: 0; }
+.col { display: flex; flex-direction: column; min-width: 0; min-height: 0; background: var(--bg); }
+.col + .col { border-left: 1px solid var(--border); }
+.col-left { width: 248px; flex: none; background: var(--sidebar); }
+.col-mid { flex: 1 1 0; }
+.col-right { width: clamp(380px, 40%, 600px); flex: none; }
+.cols[data-vis="l"] .col-left, .cols[data-vis="r"] .col-right, .cols[data-vis="lr"] .col-right { flex: 1 1 0; width: auto; }
+.cols[data-vis="lr"] .col-right .thread-inner, .cols[data-vis="r"] .col-right .thread-inner, .cols[data-vis="mr"] .col-right .thread-inner { max-width: 46rem; margin-inline: auto; width: 100%; }
+.col-head { height: 52px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--border); min-width: 0; }
+.col-head h2 { font-size: 15px; font-weight: 600; margin: 0; white-space: nowrap; }
+.col-head .sub { color: var(--muted-fg); font-size: 13px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+.col-head .grow { flex: 1; min-width: 0; }
+.col-tools { display: flex; align-items: center; gap: 2px; flex: none; }
+.col-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; }
+
+/* Left column */
+.brand { font-weight: 600; font-size: 15px; }
+.nav { padding: 10px 8px; display: flex; flex-direction: column; gap: 1px; }
+.nav-sec { display: flex; align-items: center; gap: 8px; color: var(--muted-fg); font-size: 12px; padding: 10px 8px 4px; }
+.nav-sec::after { content: ""; flex: 1; height: 1px; background: var(--border); order: 1; }
+.nav-sec .ibtn { order: 2; width: 22px; height: 22px; }
+.row { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border-radius: 8px; color: var(--fg); width: 100%; text-align: left; border: 1px solid transparent; }
+.row:hover { background: var(--secondary); }
+.row .i { color: var(--muted-fg); }
+.row.on { background: var(--bg); border-color: var(--border); box-shadow: var(--shadow-card); }
+.row .lbl { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.nest { margin-left: 15px; padding-left: 8px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 1px; margin-block: 2px 6px; }
+.count { font-size: 11px; min-width: 20px; height: 18px; padding: 0 6px; border-radius: 6px; background: var(--info-surface); color: var(--info-fg); display: inline-grid; place-items: center; font-weight: 600; }
+.count.warn { background: var(--warning-surface); color: var(--warning-fg); }
+.count.zero { background: transparent; color: var(--faint-fg); font-weight: 400; }
+.left-foot { margin-top: auto; padding: 8px; display: flex; flex-direction: column; gap: 1px; border-top: 1px solid var(--border); }
+.me-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; }
+.me-row .role { color: var(--muted-fg); font-size: 12px; margin-left: auto; }
+
+/* Feed */
+.chan-tabs { display: flex; gap: 4px; padding: 8px 16px; border-bottom: 1px solid var(--border); flex: none; overflow-x: auto; }
+.chan-tabs button { height: 26px; padding: 0 10px; border-radius: 7px; color: var(--muted-fg); font-size: 13px; white-space: nowrap; }
+.chan-tabs button[aria-pressed="true"] { background: var(--secondary); color: var(--fg); font-weight: 500; }
+.chan-agent { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; border-radius: 8px; color: var(--muted-fg); font-size: 12px; white-space: nowrap; }
+.chan-agent:hover { background: var(--secondary); color: var(--fg); }
+.chan-agent.set { color: var(--fg); }
+.feed { padding: 12px 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+.day { display: flex; align-items: center; gap: 10px; color: var(--muted-fg); font-size: 11px; margin: 6px 0; }
+.day::before, .day::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.day span { border: 1px solid var(--border); border-radius: 999px; padding: 1px 10px; background: var(--bg); }
+.tcard { display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); text-align: left; width: 100%; box-shadow: var(--shadow-card); }
+.tcard:hover { border-color: var(--input); }
+.tcard.sel { border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
+.tcard .who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tcard .who b { font-weight: 600; }
+.tcard .who time { margin-left: auto; color: var(--muted-fg); font-size: 12px; }
+.tcard .title { font-weight: 500; }
+.tcard .first { color: var(--muted-fg); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.tcard .meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted-fg); flex-wrap: wrap; }
+.tcard .meta .replies { color: var(--fg); font-weight: 500; }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; height: 20px; padding: 0 8px; border-radius: 999px; background: var(--secondary); color: var(--fg); white-space: nowrap; font-weight: 500; }
+.pill.info { background: var(--info-surface); color: var(--info-fg); }
+.pill.ok { background: var(--success-surface); color: var(--success-fg); }
+.pill.warn { background: var(--warning-surface); color: var(--warning-fg); }
+.pill.muted { color: var(--muted-fg); }
+
+/* Thread */
+.crumb { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 14px; }
+.crumb .c1 { color: var(--muted-fg); white-space: nowrap; }
+.crumb .c2 { font-weight: 500; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; min-width: 0; }
+.thread-inner { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.msgs { padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 16px; }
+.msg { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.msg-head { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; }
+.msg-head b { font-weight: 600; }
+.msg-head .agent-meta { color: var(--muted-fg); font-size: 12px; }
+.msg-head time { margin-left: auto; color: var(--muted-fg); font-size: 12px; }
+.msg-body { overflow-wrap: anywhere; }
+.msg-body p { margin: 0 0 6px; }
+.msg-body p:last-child { margin-bottom: 0; }
+.msg.own { align-items: flex-end; }
+.msg.own .msg-head { justify-content: flex-end; }
+.msg.own .msg-head time { margin-left: 0; }
+.msg.own .msg-body { background: var(--bubble); border-radius: 14px; padding: 8px 12px; max-width: 85%; }
+.mention { background: var(--mention-bg); color: var(--mention-fg); border-radius: 4px; padding: 0 3px; font-weight: 500; }
+code.inl { background: var(--secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; font-size: 12.5px; font-family: inherit; }
+.typing { display: flex; align-items: center; gap: 8px; color: var(--muted-fg); font-size: 12px; }
+.dots i { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: var(--muted-fg); margin-right: 2px; animation: blink 1.2s infinite; }
+.dots i:nth-child(2) { animation-delay: .2s; } .dots i:nth-child(3) { animation-delay: .4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: .25 } 40% { opacity: 1 } }
+
+/* Composer */
+.composer-wrap { padding: 8px 16px 12px; flex: none; }
+.composer { border: 1px solid var(--border); border-radius: 16px; background: var(--card); box-shadow: var(--shadow-card); padding: 10px 10px 8px 14px; display: flex; flex-direction: column; gap: 6px; }
+.composer:focus-within { border-color: var(--input); }
+.composer textarea { border: 0; outline: 0; resize: none; background: transparent; min-height: 44px; max-height: 160px; width: 100%; line-height: 1.45; padding: 0; }
+.composer textarea::placeholder { color: var(--faint-fg); }
+.composer-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.composer-row .grow { flex: 1; }
+.model-btn { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 8px; border-radius: 8px; color: var(--muted-fg); font-size: 12.5px; min-width: 0; max-width: 220px; }
+.model-btn:hover, .model-btn[aria-expanded="true"] { background: var(--secondary); color: var(--fg); }
+.model-btn .lbl { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.send { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--primary); color: var(--primary-fg); flex: none; }
+.send:disabled { background: var(--secondary); color: var(--faint-fg); cursor: default; }
+.hint { font-size: 11.5px; color: var(--faint-fg); padding: 6px 4px 0; }
+.prov-ic { width: 16px; height: 16px; flex: none; }
+.prov-ic.claude { color: var(--claude); }
+.prov-ic.codex { color: var(--codex); }
+
+/* Model picker (T3 style) */
+.picker { position: fixed; z-index: 40; width: min(600px, calc(100vw - 32px)); background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop);
+  display: grid; grid-template-columns: 150px minmax(0, 1fr) 150px; grid-template-rows: minmax(0, 1fr) auto; max-height: min(440px, calc(100% - 120px)); overflow: hidden; }
+.pk-prov { border-right: 1px solid var(--border); padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.pk-prov button { display: grid; grid-template-columns: 18px 1fr; gap: 2px 8px; align-items: center; text-align: left; padding: 8px; border-radius: 8px; position: relative; }
+.pk-prov button:hover { background: var(--secondary); }
+.pk-prov button[aria-pressed="true"] { background: var(--secondary); }
+.pk-prov button[aria-pressed="true"]::after { content: ""; position: absolute; right: -9px; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--primary); }
+.pk-prov .pn { font-weight: 500; font-size: 13px; }
+.pk-prov .pd { grid-column: 2; font-size: 11px; color: var(--muted-fg); display: flex; align-items: center; gap: 4px; }
+.pk-prov .pd i { width: 6px; height: 6px; border-radius: 50%; background: var(--success); display: inline-block; }
+.pk-prov .pd i.wait { background: var(--warning); }
+.pk-list { display: flex; flex-direction: column; min-height: 0; }
+.pk-search { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--muted-fg); }
+.pk-search input { flex: 1; border: 0; outline: 0; background: transparent; min-width: 0; color: var(--fg); }
+.pk-models { overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 2px; }
+.pk-models button { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; text-align: left; }
+.pk-models button:hover, .pk-models button[aria-selected="true"] { background: var(--secondary); }
+.pk-models .mn { flex: 1; min-width: 0; }
+.pk-models .mid { display: block; font-size: 11px; color: var(--muted-fg); }
+.pk-models .ck { color: var(--fg); }
+.pk-models .kbd { margin-left: auto; }
+.pk-load { display: flex; align-items: center; gap: 8px; padding: 8px 10px; color: var(--muted-fg); font-size: 12px; }
+.spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--border); border-top-color: var(--muted-fg); animation: spin .8s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.skel { height: 30px; border-radius: 8px; background: var(--secondary); margin: 2px 4px; animation: pulse 1.4s infinite; }
+@keyframes pulse { 50% { opacity: .5 } }
+.pk-reason { border-left: 1px solid var(--border); padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.pk-reason .rh { font-size: 12px; color: var(--muted-fg); padding: 6px 8px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
+.pk-reason button { display: flex; align-items: center; justify-content: space-between; padding: 7px 8px; border-radius: 8px; text-align: left; }
+.pk-reason button:hover { background: var(--secondary); }
+.pk-reason .def { font-size: 11px; color: var(--faint-fg); }
+.pk-foot { grid-column: 1 / -1; border-top: 1px solid var(--border); padding: 8px 12px; font-size: 12px; color: var(--muted-fg); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.pk-empty { padding: 14px 10px; color: var(--muted-fg); font-size: 13px; }
+
+/* Task card */
+.task { border: 1px solid var(--border); border-radius: 12px; background: var(--card); box-shadow: var(--shadow-card); display: flex; flex-direction: column; overflow: hidden; }
+.task.attn { border-color: var(--warning-border); }
+.task-top { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--border); min-width: 0; }
+.task-top .ttl { font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.task-top .ttl small { display: block; font-weight: 400; color: var(--muted-fg); font-size: 11.5px; }
+.task-top .pill { margin-left: auto; }
+.task-sec { padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.task-sec + .task-sec { border-top: 1px solid var(--border); }
+.lbl-up { font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-fg); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.hand { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: 13px; }
+.hand .ft { display: inline-flex; align-items: center; gap: 4px; font-weight: 500; white-space: nowrap; }
+.hand .what { color: var(--muted-fg); overflow-wrap: anywhere; }
+.hand time { color: var(--muted-fg); font-size: 12px; }
+.prog { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--muted-fg); flex-wrap: wrap; }
+.bar { flex: 1; min-width: 80px; height: 6px; border-radius: 3px; background: var(--secondary); overflow: hidden; border: 1px solid var(--border); }
+.bar i { display: block; height: 100%; background: var(--primary); transition: width .4s ease; }
+.bar.sm { flex: none; width: 64px; height: 5px; }
+.steps { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.step { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.step .st { color: var(--muted-fg); font-size: 12px; }
+.step.todo span:nth-child(2) { color: var(--muted-fg); }
+.ic-ok { color: var(--success); } .ic-run { color: var(--info); } .ic-todo { color: var(--faint-fg); } .ic-warn { color: var(--warning); }
+.diff { padding-left: 24px; font-size: 12px; color: var(--muted-fg); display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.diff .add { color: var(--success-fg); } .diff .del { color: var(--error-fg); }
+.ev { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; font-size: 13px; }
+.ev .d { color: var(--muted-fg); font-size: 12px; }
+.ev .by { color: var(--muted-fg); font-size: 11px; }
+.ask { background: var(--warning-surface); border: 1px solid var(--warning-border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+.ask b { color: var(--warning-fg); }
+.task-acts { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.deny { display: flex; align-items: center; gap: 6px; color: var(--muted-fg); font-size: 12.5px; }
+.kv { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 12px; font-size: 13px; margin: 0; }
+.kv dt { color: var(--muted-fg); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.crit { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.crit li { display: grid; grid-template-columns: 16px 1fr; gap: 6px; align-items: start; }
+.crit li .i { margin-top: 2px; }
+details.more summary { cursor: pointer; color: var(--muted-fg); font-size: 12.5px; list-style: none; display: flex; align-items: center; gap: 6px; }
+details.more summary::-webkit-details-marker { display: none; }
+details.more[open] summary .chev { transform: rotate(90deg); }
+details.more summary .chev { transition: transform .15s; }
+details.more > div { margin-top: 8px; }
+.gate { font-size: 13px; display: grid; grid-template-columns: 16px minmax(0, 1fr); gap: 8px; }
+.gate .d { color: var(--muted-fg); }
+
+/* Tasks view */
+.tasks-head-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tlist { padding: 4px 12px 20px; display: flex; flex-direction: column; gap: 6px; }
+.group { display: flex; align-items: center; gap: 8px; margin: 12px 4px 2px; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--muted-fg); font-weight: 500; }
+.group::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.group button { display: inline-flex; align-items: center; gap: 4px; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.group.attn { color: var(--warning-fg); }
+.trow { display: grid; grid-template-columns: 10px minmax(0, 1fr) auto; gap: 4px 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); text-align: left; width: 100%; box-shadow: var(--shadow-card); }
+.trow:hover { border-color: var(--input); }
+.trow.sel { border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
+.trow.attn { background: var(--warning-surface); border-color: var(--warning-border); }
+.trow .dot { margin-top: 6px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.dot.q { background: var(--faint-fg); } .dot.p { background: var(--info); } .dot.r { background: var(--av-alfred); } .dot.n { background: var(--warning); } .dot.m { background: var(--success); } .dot.d { background: var(--faint-fg); }
+.trow .t-title { font-weight: 500; min-width: 0; }
+.trow .t-time { color: var(--muted-fg); font-size: 12px; }
+.trow .t-meta { grid-column: 2 / 4; display: flex; gap: 6px 10px; color: var(--muted-fg); font-size: 12px; align-items: center; flex-wrap: wrap; }
+.board-wrap { overflow-x: auto; flex: 1; min-height: 0; }
+.board { display: flex; gap: 10px; padding: 12px 16px 16px; min-height: 100%; align-items: flex-start; width: max-content; }
+.lane { width: 250px; flex: none; display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 12px; background: var(--secondary); border: 1px solid transparent; }
+.lane.attn { background: var(--warning-surface); border-color: var(--warning-border); }
+.lane.fold { width: 46px; align-items: center; padding: 10px 4px; }
+.lane.fold button { writing-mode: vertical-rl; color: var(--muted-fg); display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.lane-h { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 2px 4px; }
+.lane-h .n { color: var(--muted-fg); font-weight: 400; }
+.lane-h .who { margin-left: auto; color: var(--muted-fg); font-weight: 400; font-size: 11.5px; }
+.bcard { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px; text-align: left; width: 100%; font-size: 13px; box-shadow: var(--shadow-card); cursor: pointer; }
+.bcard:hover { border-color: var(--input); }
+.bcard.sel { border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
+.bcard .c-title { font-weight: 500; }
+.bcard .c-meta { display: flex; flex-wrap: wrap; gap: 4px 8px; color: var(--muted-fg); font-size: 12px; align-items: center; }
+.bcard .foot { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-fg); }
+.bcard .foot .t { margin-left: auto; }
+.bcard .askq { font-size: 12.5px; }
+.lane-empty { color: var(--faint-fg); font-size: 12px; padding: 4px 6px 8px; }
+
+/* Inbox and people */
+.ilist { padding: 4px 12px 20px; display: flex; flex-direction: column; gap: 4px; }
+.irow { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 2px 10px; padding: 10px 12px; border-radius: 10px; text-align: left; width: 100%; border: 1px solid transparent; }
+.irow:hover { background: var(--secondary); }
+.irow.unread { background: var(--card); border-color: var(--border); box-shadow: var(--shadow-card); }
+.irow.attn { background: var(--warning-surface); border-color: var(--warning-border); }
+.irow .reason { font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.irow .reason .dot { width: 6px; height: 6px; background: var(--primary); }
+.irow .txt { grid-column: 2 / 4; color: var(--muted-fg); font-size: 13px; overflow-wrap: anywhere; }
+.irow .where { font-size: 12px; color: var(--muted-fg); }
+.irow time { font-size: 12px; color: var(--muted-fg); }
+.irow:not(.unread) .reason { color: var(--muted-fg); font-weight: 500; }
+.empty { padding: 28px 16px; text-align: center; color: var(--muted-fg); font-size: 13px; }
+.plist { padding: 8px 12px 20px; display: flex; flex-direction: column; gap: 4px; }
+.prow { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 8px 10px; border-radius: 10px; }
+.prow:hover { background: var(--secondary); }
+.prow .pdesc { grid-column: 2 / 4; font-size: 12px; color: var(--muted-fg); }
+.note { margin: 8px 12px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 10px; font-size: 12.5px; color: var(--muted-fg); display: flex; flex-direction: column; gap: 6px; }
+
+/* Dialog */
+.overlay { position: fixed; inset: 0; z-index: 50; background: var(--scrim); display: grid; place-items: center;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px; }
+.dialog { width: min(460px, 100%); max-height: 100%; overflow-y: auto; background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.dialog h3 { margin: 0; font-size: 15px; }
+.dialog .desc { margin: 2px 0 0; color: var(--muted-fg); font-size: 13px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field > .flabel { font-size: 13px; font-weight: 500; display: flex; gap: 6px; align-items: baseline; }
+.field .req { font-size: 11px; color: var(--muted-fg); font-weight: 400; }
+.sel { position: relative; }
+.sel-btn { width: 100%; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--card); text-align: left; }
+.sel-btn:disabled { opacity: .55; }
+.sel-btn .lbl { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.sel-list { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 4px); background: var(--popover); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow-pop); padding: 4px; display: flex; flex-direction: column; gap: 1px; }
+.sel-list button { display: flex; align-items: center; gap: 8px; padding: 7px 8px; border-radius: 7px; text-align: left; }
+.sel-list button:hover, .sel-list button:focus-visible { background: var(--secondary); outline: none; }
+.sel-list .od { color: var(--muted-fg); font-size: 12px; margin-left: auto; }
+.skills { border: 1px solid var(--border); border-radius: 10px; }
+.skills summary { cursor: pointer; padding: 10px 12px; display: flex; align-items: center; gap: 6px; list-style: none; font-size: 13px; color: var(--muted-fg); }
+.skills summary::-webkit-details-marker { display: none; }
+.skills[open] summary { border-bottom: 1px solid var(--border); color: var(--fg); }
+.skills[open] summary .chev { transform: rotate(90deg); }
+.skills .sk { display: grid; grid-template-columns: 18px 1fr; gap: 2px 8px; padding: 8px 12px; }
+.skills .sk input { margin: 2px 0 0; accent-color: var(--primary); width: 15px; height: 15px; }
+.skills .sk label { font-weight: 500; font-size: 13px; }
+.skills .sk .sd { grid-column: 2; font-size: 12px; color: var(--muted-fg); }
+.dlg-acts { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* Drawer */
+.drawer-scrim { position: absolute; inset: 0; z-index: 30; background: var(--scrim-light); }
+.drawer { position: absolute; top: 0; right: 0; bottom: 0; z-index: 31; width: min(540px, 100%); background: var(--popover); border-left: 1px solid var(--border); box-shadow: var(--shadow-pop); display: flex; flex-direction: column; animation: slidein .22s cubic-bezier(0.32, 0.72, 0, 1); }
+@keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
+.drawer .col-body { padding: 4px 16px 24px; display: flex; flex-direction: column; gap: 18px; }
+.dsec { display: flex; flex-direction: column; gap: 8px; }
+.tl { display: flex; flex-direction: column; gap: 0; border-left: 1px solid var(--border); margin-left: 7px; padding-left: 14px; }
+.tl div { position: relative; padding: 4px 0; font-size: 13px; }
+.tl div::before { content: ""; position: absolute; left: -18px; top: 11px; width: 7px; height: 7px; border-radius: 50%; background: var(--faint-fg); }
+.tl div.h::before { background: var(--primary); }
+.tl div.c::before { background: var(--warning); }
+.tl time { color: var(--muted-fg); font-size: 12px; margin-right: 6px; }
+.ctx { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: var(--info-surface); color: var(--fg); }
+.ctx .i { color: var(--info-fg); margin-top: 2px; }
+.pair { display: flex; flex-direction: column; gap: 12px; }
+.etable { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.etable th { text-align: left; font-weight: 500; color: var(--muted-fg); padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.etable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+
+/* Toasts, palette, offer */
+.toasts { position: fixed; z-index: 60; right: max(24px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100vw - 48px)); }
+.toast { background: var(--popover); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-pop); padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: start; font-size: 13px; animation: rise .2s ease-out; }
+.toast.attn { border-color: var(--warning-border); }
+.toast .tt { font-weight: 600; }
+.toast .tb { grid-column: 2 / 4; color: var(--muted-fg); }
+@keyframes rise { from { transform: translateY(8px); opacity: 0; } }
+.palette { width: min(560px, 100%); align-self: start; margin-top: 8vh; background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop); overflow: hidden; }
+.palette .pk-search { padding: 12px 14px; }
+.palette ul { list-style: none; margin: 0; padding: 6px; max-height: 360px; overflow-y: auto; }
+.palette li button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 8px; text-align: left; }
+.palette li button[aria-selected="true"], .palette li button:hover { background: var(--secondary); }
+.palette li .k { margin-left: auto; color: var(--muted-fg); font-size: 12px; }
+.offer { position: fixed; z-index: 55; right: max(24px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: min(340px, calc(100vw - 48px)); background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop); padding: 16px; display: flex; flex-direction: column; gap: 10px; animation: rise .25s ease-out; }
+.offer h3 { margin: 0; font-size: 15px; }
+.offer p { margin: 0; color: var(--muted-fg); font-size: 13px; }
+.offer .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Tour */
+.tour-block { position: fixed; inset: 0; z-index: 70; }
+.spot { position: fixed; z-index: 71; border-radius: 12px; pointer-events: none; outline: 2px solid var(--primary); outline-offset: 0; transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease; }
+.spot.none { display: none; }
+.dim { position: fixed; z-index: 70; background: var(--scrim); transition: all .25s ease; }
+.dim.story { background: var(--scrim-light); pointer-events: none; }
+.tpop { position: fixed; z-index: 72; width: min(340px, calc(100vw - 32px)); background: var(--popover); border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow-pop); padding: 16px; display: flex; flex-direction: column; gap: 10px; transition: top .25s ease, left .25s ease; }
+.tpop h3 { margin: 0; font-size: 15px; text-wrap: balance; }
+.tpop p { margin: 0; font-size: 13.5px; color: var(--muted-fg); }
+.tpop .tdots { display: flex; gap: 4px; align-items: center; }
+.tpop .tdots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border); }
+.tpop .tdots i.on { background: var(--primary); width: 16px; border-radius: 3px; }
+.tpop .tnav { display: flex; align-items: center; gap: 8px; }
+.tpop .tnav .grow { flex: 1; }
+.tpop .tcount { font-size: 12px; color: var(--muted-fg); }
+
+/* Mobile tabs */
+.mtabs { display: none; }
+.show-m { display: none; }
+@media (max-width: 760px) {
+  .shell { padding-block: 8px; }
+  .toggles, .col-tools .desk, .search .kbd, .search .lbl, .hide-m { display: none !important; }
+  .search { flex: none; width: 32px; padding: 0; justify-content: center; margin: 0 auto 0 0; }
+  .top { gap: 6px; padding: 0 8px; }
+  .top-right { gap: 4px; }
+  .top-right .btn { padding: 0 7px; }
+  .cols > .col { display: none; }
+  .cols[data-mtab="left"] > .col-left, .cols[data-mtab="mid"] > .col-mid, .cols[data-mtab="right"] > .col-right { display: flex; flex: 1 1 0; width: auto; border-left: 0; }
+  .top-right .show-m { display: inline-grid; }
+  .mtabs { display: flex; gap: 4px; padding: 6px; border-top: 1px solid var(--border); background: var(--bg); padding-bottom: calc(6px + env(safe-area-inset-bottom, 0px)); }
+  .mtabs button { flex: 1; height: 34px; border-radius: 8px; color: var(--muted-fg); font-size: 13px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .mtabs button[aria-pressed="true"] { background: var(--secondary); color: var(--fg); font-weight: 500; }
+  .picker { left: 8px !important; right: 8px !important; width: auto; bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important; top: auto !important; grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr) auto auto; max-height: 75%; }
+  .pk-prov { flex-direction: row; border-right: 0; border-bottom: 1px solid var(--border); }
+  .pk-prov button { flex: 1; }
+  .pk-prov button[aria-pressed="true"]::after { display: none; }
+  .pk-reason { border-left: 0; border-top: 1px solid var(--border); flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .pk-reason .rh { border: 0; margin: 0; padding: 4px; width: 100%; }
+  .pk-reason button { flex: 1; justify-content: center; gap: 6px; }
+  .pk-reason .def { display: none; }
+  .msg.own .msg-body { max-width: 92%; }
+  .kv { grid-template-columns: 96px minmax(0, 1fr); }
+  .tpop { left: 16px !important; right: 16px; width: auto; }
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .col-left { width: 216px; }
+  .col-right { width: clamp(340px, 44%, 520px); }
+  .top-right .btn .bl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="app" id="app">
+    <header class="top" id="top"></header>
+    <main class="cols" id="cols">
+      <section class="col col-left" id="col-left" aria-label="Projects"></section>
+      <section class="col col-mid" id="col-mid" aria-label="Channel feed"></section>
+      <section class="col col-right" id="col-right" aria-label="Thread">
+        <div class="col-head" id="thread-head"></div>
+        <div class="thread-inner">
+          <div class="col-body" id="thread-scroll"><div class="msgs" id="thread-msgs"></div></div>
+          <div class="composer-wrap" id="composer-wrap"></div>
+        </div>
+      </section>
+    </main>
+    <nav class="mtabs" id="mtabs" aria-label="Columns"></nav>
+    <div id="drawer-root"></div>
+  </div>
+</div>
+<div id="picker-root"></div>
+<div id="dialog-root"></div>
+<div id="toast-root" class="toasts" aria-live="polite"></div>
+<div id="offer-root"></div>
+<div id="tour-root"></div>
+<script>
+'use strict';
+/* ---------- Icons (Lucide-style paths, MIT) ---------- */
+const IC = {
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  plus: '<path d="M5 12h14M12 5v14"/>',
+  chevDown: '<path d="m6 9 6 6 6-6"/>',
+  chevRight: '<path d="m9 18 6-6-6-6"/>',
+  chevLeft: '<path d="m15 18-6-6 6-6"/>',
+  arrowUp: '<path d="m5 12 7-7 7 7M12 19V5"/>',
+  arrowRight: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  clip: '<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/>',
+  inbox: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  folder: '<path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/>',
+  hash: '<path d="M4 9h16M4 15h16M10 3 8 21M16 3l-2 18"/>',
+  tasks: '<path d="m3 17 2 2 4-4M3 7l2 2 4-4M13 6h8M13 12h8M13 18h8"/>',
+  panelL: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>',
+  panelM: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18"/>',
+  panelR: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M15 3v18"/>',
+  max: '<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',
+  min: '<path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>',
+  hide: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M16 15l-3-3 3-3"/>',
+  play: '<path d="m6 3 14 9-14 9V3z"/>',
+  ff: '<path d="m13 19 9-7-9-7v14zM2 19l9-7-9-7v14z"/>',
+  reset: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  compass: '<circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/>',
+  merge: '<circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M6 21V9a9 9 0 0 0 9 9"/>',
+  lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  circle: '<circle cx="12" cy="12" r="9"/>',
+  circleDot: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/>',
+  circleCheck: '<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+  alert: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5M2 12l10 5 10-5"/>',
+  message: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  board: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v12M15 3v7"/>',
+  list: '<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  repo: '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>',
+  claude: '<path d="M12 2.5v19M2.5 12h19M5.3 5.3l13.4 13.4M18.7 5.3 5.3 18.7"/>',
+  codex: '<path d="M12 2.5 20.5 7.3v9.4L12 21.5l-8.5-4.8V7.3z"/><path d="M12 8.5 15 10.2v3.6L12 15.5l-3-1.7v-3.6z"/>'
+};
+function icon(name, cls) { return '<svg class="i' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + (IC[name] || '') + '</svg>'; }
+
+/* ---------- People, agents, projects ---------- */
+const PEOPLE = {
+  emil: { name: 'Emil', kind: 'human', av: '--av-emil', title: 'Project owner' },
+  masha: { name: 'Masha', kind: 'human', av: '--av-masha', title: 'Developer' },
+  kai: { name: 'Kai', kind: 'human', av: '--av-kai', title: 'Product' },
+  alfred: { name: 'Alfred', kind: 'agent', av: '--av-alfred', role: 'Chief of staff', model: 'Claude Code · claude-opus-5-5' },
+  executor: { name: 'Executor', kind: 'agent', av: '--av-executor', role: 'Executor', model: 'Claude Code · claude-opus-5-5' },
+  reviewer: { name: 'Reviewer', kind: 'agent', av: '--av-reviewer', role: 'Reviewer', model: 'Codex · gpt-6.2-sol' },
+  reviewer2: { name: 'Second review', kind: 'agent', av: '--av-reviewer', role: 'Reviewer', model: 'Codex · gpt-6.2-sol · medium' },
+  assistant: { name: 'Assistant', kind: 'agent', av: '--av-assistant', role: 'Assistant' }
+};
+const ME_CHOICES = ['emil', 'masha'];
+const OWNER = 'emil';
+
+const PROJECTS = [
+  { id: 'general', name: 'General', repos: ['handbook'], roles: { emil: 'Approver', masha: 'Developer', kai: 'Product' }, channels: [{ id: 'g-general', name: 'general', desc: 'Anything and everything.' }] },
+  { id: 'web', name: 'Web Shop', repos: ['web-shop', 'billing-api'], roles: { emil: 'Approver', masha: 'Developer', kai: 'Product' }, channels: [
+    { id: 'w-general', name: 'general', desc: 'Storefront, releases, bugs.' },
+    { id: 'w-billing', name: 'billing', desc: 'Plans, invoices and payments.' }] },
+  { id: 'mobile', name: 'Mobile App', repos: ['mobile-app'], roles: { emil: 'Approver', masha: 'Developer', kai: 'Product' }, channels: [{ id: 'm-general', name: 'general', desc: 'iOS and Android app.' }] }
+];
+const SKILLS = [
+  { id: 'tdd', desc: 'Test-driven development, one slice at a time.' },
+  { id: 'unslop', desc: 'Cut filler from any writing.' },
+  { id: 'review-gate', desc: 'One evidence-backed readiness review before merge.' }
+];
+const AGENT_OPTIONS = [
+  { id: 'none', label: 'No default agent', d: 'People only' },
+  { id: 'alfred', label: 'Alfred', d: 'Chief of staff persona' },
+  { id: 'assistant', label: 'Assistant', d: 'Answers questions' }
+];
+const ROLE_OPTIONS = ['Chief of staff', 'Assistant', 'Reviewer'];
+
+/* ---------- Models, detected per host ---------- */
+const PROVIDERS = [
+  { id: 'claude', name: 'Claude Code', ic: 'claude', delay: 250, models: [
+    { id: 'claude-opus-5-5', name: 'Opus 5.5' }, { id: 'claude-fable-5-2', name: 'Fable 5.2' },
+    { id: 'claude-sonnet-5', name: 'Sonnet 5' }, { id: 'claude-haiku-4-5', name: 'Haiku 4.5' }] },
+  { id: 'codex', name: 'Codex', ic: 'codex', delay: 1150, models: [
+    { id: 'gpt-6.2-sol', name: 'GPT-6.2-Sol' }, { id: 'gpt-6.2-astra', name: 'GPT-6.2-Astra' },
+    { id: 'gpt-6.1-terra', name: 'GPT-6.1 Terra' }, { id: 'gpt-6-luna', name: 'GPT-6-Luna' }] }
+];
+const REASONING = ['Low', 'Medium', 'High'];
+function providerOf(id) { return PROVIDERS.find(p => p.id === id); }
+function modelOf(pid, mid) { const p = providerOf(pid); return p && p.models.find(m => m.id === mid); }
+
+/* ---------- Seed threads ---------- */
+function M(by, time, text, extra) { return Object.assign({ by, time, text }, extra || {}); }
+const OPUS = { provider: 'claude', id: 'claude-opus-5-5' };
+
+function seedThreads() {
+  return {
+    't-annual': { channel: 'w-billing', title: 'Annual plan at checkout', day: 'Today', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'High' }, msgs: [
+      M('kai', '13:02', 'Can we offer a yearly plan at checkout? Stripe already has annual prices enabled on our account, and three customers asked for one this month.'),
+      M('masha', '13:10', 'The picker lives in `plan-picker.tsx` and only knows monthly. The hard part is switching mid-cycle: someone on monthly who moves to annual on day 12 has already paid for 18 more days.'),
+      M('emil', '13:14', 'Credit the unused days, no refunds. Same rule as the Team plan.'),
+      M('masha', '13:15', 'Fine by me. Assistant, how does Stripe prorate when a subscription moves from monthly to yearly?'),
+      M('assistant', '13:15', 'Stripe prorates by default. It credits the unused time on the monthly price and charges the yearly price right away, on one invoice. To match Emil\'s rule, keep `proration_behavior: create_prorations` and never refund the credit. Masha\'s day-12 example comes to a credit of 18 days at $9 a month, about $5.40.', { model: OPUS }),
+      M('kai', '13:21', 'Nice. The price is still open: $96 or $108 a year. I\'m checking with finance.')
+    ] },
+    't-invoice': { channel: 'w-billing', title: 'Latvian invoices show Estonian VAT', day: 'Today', model: { provider: 'codex', id: 'gpt-6.2-sol', reasoning: 'Medium' }, msgs: [
+      M('masha', '11:40', 'Invoice PDFs for Latvian customers show 24% VAT. Latvia is 21%. The total is right, only the label is wrong.'),
+      M('kai', '11:52', 'Two customers noticed. Can we fix it before the month-end run?'),
+      M('emil', '12:03', 'Yes. Masha, does it come from `vat-label.ts`?'),
+      M('masha', '12:09', 'It does. It reads the seller\'s country instead of the buyer\'s. I\'ll pick it up after lunch.'),
+      M('kai', '12:40', 'Thanks. I\'ll tell the two customers it\'s coming this week.')
+    ] },
+    't-dunning': { channel: 'w-billing', title: 'Retry failed card payments after 3 days', day: 'Yesterday', model: { provider: 'claude', id: 'claude-sonnet-5', reasoning: 'Medium' }, msgs: [
+      M('kai', '16:20', 'Failed card payments retry after one day. Most cards that fail are topped up on payday, so 3 days would recover more.'),
+      M('masha', '16:41', 'Easy change in the Stripe dashboard, no code. I\'d keep the email on day one.'),
+      M('emil', '17:02', 'Agreed. Let\'s try 3 days for November and compare.')
+    ] },
+    't-coupon': { channel: 'w-billing', title: 'Coupon field trims spaces', day: 'Monday', taskId: 'k-coupon', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('masha', '10:12', 'People paste coupon codes with a trailing space and get "Coupon not found".'),
+      M('emil', '10:20', 'Alfred, take it.'),
+      { kind: 'task', id: 'k-coupon', time: '10:21' },
+      M('alfred', '11:02', 'Merged PR #36 as `5e0b9a1`. Coupon codes are trimmed before lookup, with a test for leading and trailing spaces.', { model: OPUS })
+    ] },
+    't-contact': { channel: 'w-general', title: 'Contact form sends twice', day: 'Today', taskId: 'k-contact', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('masha', '10:02', 'The contact form sends every message twice when you press Enter. Support got 40 duplicates yesterday.'),
+      M('emil', '10:05', 'Alfred, please take this one. Enter and the Send button should produce one request.'),
+      { kind: 'task', id: 'k-contact', time: '10:06' },
+      M('alfred', '12:48', 'PR #39 is ready to merge. Tests pass on `a91c0e2` with no new failures, and the review is clean. Emil, it needs your merge.', { model: OPUS })
+    ] },
+    't-release': { channel: 'w-general', title: 'Release notes for 2.8', day: 'Today', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('masha', '12:30', 'Draft notes for 2.8: faster search, saved carts on mobile web, fixed the double contact form. @Emil can you check them before we ship?'),
+      M('kai', '12:44', 'Add the new Latvian VAT label once that lands.')
+    ] },
+    't-export': { channel: 'w-general', title: 'Export orders as CSV', day: 'Today', taskId: 'k-export', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('kai', '09:30', 'Accounting wants a CSV of last month\'s orders: date, order number, customer country, net, VAT, total.'),
+      M('emil', '09:41', 'Alfred, queue it after the search fix.'),
+      { kind: 'task', id: 'k-export', time: '09:42' }
+    ] },
+    't-accents': { channel: 'w-general', title: 'Search ignores accents', day: 'Today', taskId: 'k-accents', model: { provider: 'codex', id: 'gpt-6.2-astra', reasoning: 'High' }, msgs: [
+      M('masha', '13:30', 'Searching "Jurgen" doesn\'t find "Jürgen". Same for "Sao Paulo".'),
+      M('emil', '13:36', 'Alfred, please fix search so accents don\'t matter.'),
+      { kind: 'task', id: 'k-accents', time: '13:37' }
+    ] },
+    't-cart': { channel: 'w-general', title: 'Cart badge count off by one', day: 'Tuesday', taskId: 'k-cart', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('kai', '15:10', 'The cart badge shows 3 when there are 2 items after you remove one.'),
+      { kind: 'task', id: 'k-cart', time: '15:12' },
+      M('alfred', '16:05', 'Merged PR #37 as `c4d27f8`. The badge now reads from the cart state after removal.', { model: OPUS })
+    ] },
+    't-reconnect': { channel: 'm-general', title: 'App reconnects slowly after sleep', day: 'Today', taskId: 'k-reconnect', model: { provider: 'codex', id: 'gpt-6.2-sol', reasoning: 'High' }, msgs: [
+      M('kai', '09:05', 'After the phone sleeps, the app takes about 20 seconds to reconnect. Drivers think it froze.'),
+      M('masha', '09:20', 'The socket waits for its own backoff timer. It should reconnect as soon as the app comes to the foreground.'),
+      M('emil', '09:24', 'Alfred, take it. Reconnect within 2 seconds after foreground.'),
+      { kind: 'task', id: 'k-reconnect', time: '09:25' }
+    ] },
+    't-push': { channel: 'm-general', title: 'Push permission after the first order', day: 'Today', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('kai', '11:15', '@Masha can we ask for push permission after the first order instead of on launch? 61% decline it on launch.'),
+      M('masha', '11:30', 'Yes, the prompt is one call. I\'ll move it to the order confirmation screen.')
+    ] },
+    't-demo': { channel: 'g-general', title: 'Friday demo', day: 'Today', model: { provider: 'claude', id: 'claude-opus-5-5', reasoning: 'Medium' }, msgs: [
+      M('emil', '09:00', 'Friday demo at 15:00. Who\'s showing what?'),
+      M('masha', '09:12', 'Annual plan at checkout, if it\'s merged by then.'),
+      M('kai', '09:15', 'I\'ll show the new pricing page copy.')
+    ] },
+    't-staging': { channel: 'g-general', title: 'Read access to the staging database', day: 'Yesterday', model: { provider: 'claude', id: 'claude-haiku-4-5', reasoning: 'Low' }, msgs: [
+      M('masha', '14:02', 'Who can give me read access to the staging database? I need it for the VAT fix.'),
+      M('emil', '14:30', 'Done. You\'re in the `staging-readers` group.')
+    ] }
+  };
+}
+
+/* ---------- Seed tasks (the annual plan task is created by the story) ---------- */
+function taskBase(o) { return Object.assign({ elapsed: 0, steps: [], handoffs: [], evidence: [], agentLog: [], timeline: [], criteria: [], repos: ['web-shop'], confirmedBy: null, assignedBy: 'emil', project: 'web', pr: null, sha: null, design: null, ask: null, ctx: null }, o); }
+function seedTasks() {
+  const base = (o) => taskBase(Object.assign({ confirmedBy: 'emil' }, o));
+  return {
+    'k-contact': base({ id: 'k-contact', thread: 't-contact', title: 'Contact form sends twice', phase: 'ready', elapsed: 162, readyAt: '12:48',
+      what: 'Send one request per submit, whether the person presses Enter or clicks Send.',
+      criteria: [{ t: 'Enter sends one request', ok: true }, { t: 'Clicking Send sends one request', ok: true }, { t: 'A test covers both', ok: true }],
+      pr: 39, sha: 'a91c0e2',
+      steps: [{ l: 'Reproduce the double submit', s: 'done', t: '2m' }, { l: 'Guard submit while a request is pending', s: 'done', t: '9m', diff: [['contact-form.tsx', 14, 6]] }, { l: 'Tests and PR', s: 'done', t: '6m', diff: [['contact-form.test.tsx', 31, 0]] }],
+      handoffs: [{ f: 'alfred', to: 'executor', w: 'Task and 3 acceptance criteria', time: '10:08' }, { f: 'executor', to: 'reviewer', w: 'PR #39', time: '10:31' }],
+      evidence: [{ k: 'Tests', sha: 'a91c0e2', v: 'pass', d: 'No new failures vs base 81f0c3a', by: 'runner' }, { k: 'Review', sha: 'a91c0e2', v: 'pass', d: 'No findings', by: 'agent' }],
+      timeline: [['10:08', 'Alfred handed the task to Executor', 'h'], ['10:31', 'Executor opened PR #39 for Reviewer', 'h'], ['12:46', 'Review clean on a91c0e2', '']],
+      agentLog: [['reviewer', '10:40', 'Checked a91c0e2. The pending flag resets in finally, so a failed request can be retried. No findings.']] }),
+    'k-export': base({ id: 'k-export', thread: 't-export', title: 'Export orders as CSV', phase: 'queued', elapsed: 5, assignedBy: 'kai',
+      what: 'Add a CSV export of last month\'s orders for accounting.',
+      criteria: [{ t: 'Columns: date, order number, customer country, net, VAT, total' }, { t: 'Amounts in EUR with two decimals' }],
+      queuePos: 2, timeline: [['09:42', 'Queued behind "Search ignores accents"', '']] }),
+    'k-accents': base({ id: 'k-accents', thread: 't-accents', title: 'Search ignores accents', phase: 'executing', elapsed: 4,
+      what: 'Match search terms regardless of accents and diacritics.',
+      criteria: [{ t: '"Jurgen" finds "Jürgen"' }, { t: '"Sao Paulo" finds "São Paulo"' }, { t: 'Index rebuild takes under a minute' }],
+      steps: [{ l: 'Reproduce', s: 'run', t: 'running 2m' }, { l: 'Normalize terms and index', s: 'todo' }, { l: 'Rebuild index on deploy', s: 'todo' }, { l: 'Tests and PR', s: 'todo' }],
+      handoffs: [{ f: 'alfred', to: 'executor', w: 'Task, 3 acceptance criteria, sample queries', time: '13:39' }],
+      timeline: [['13:39', 'Alfred handed the task to Executor', 'h']] }),
+    'k-reconnect': base({ id: 'k-reconnect', project: 'mobile', repos: ['mobile-app'], thread: 't-reconnect', title: 'App reconnects slowly after sleep', phase: 'review', elapsed: 46, round: 2,
+      what: 'Reconnect the socket as soon as the app returns to the foreground.',
+      criteria: [{ t: 'Reconnects within 2 seconds after foreground', ok: true }, { t: 'No duplicate sockets after repeated sleep', ok: false }],
+      pr: 58, sha: 'e17b3c2',
+      steps: [{ l: 'Reproduce with a 5-minute sleep', s: 'done', t: '6m' }, { l: 'Reconnect on foreground', s: 'done', t: '14m', diff: [['socket.ts', 23, 9], ['app-state.ts', 8, 1]] }, { l: 'Review', s: 'run', t: 'round 2' }],
+      handoffs: [{ f: 'alfred', to: 'executor', w: 'Task, 2 criteria, screen recording', time: '09:27' }, { f: 'executor', to: 'reviewer', w: 'PR #58', time: '09:58' }, { f: 'reviewer', to: 'executor', w: '1 finding: old socket not closed', time: '10:05' }],
+      evidence: [{ k: 'Tests', sha: 'e17b3c2', v: 'pass', d: 'No new failures vs base 7a2d9f0', by: 'runner' }],
+      timeline: [['09:27', 'Alfred handed the task to Executor', 'h'], ['09:58', 'Executor opened PR #58 for Reviewer', 'h'], ['10:05', 'Reviewer returned 1 finding', 'h']],
+      agentLog: [['reviewer', '10:05', 'Finding 1 (should fix): the foreground handler opens a new socket without closing the old one. Two sleeps in a row leave two sockets. cause: no-single-owner'], ['executor', '10:18', 'Agreed. The connection manager now owns the socket and closes it before reconnecting. e17b3c2.']] }),
+    'k-coupon': base({ id: 'k-coupon', thread: 't-coupon', title: 'Coupon field trims spaces', phase: 'done', elapsed: 41, assignedBy: 'emil', doneAt: 'Monday 11:02',
+      what: 'Trim coupon codes before lookup.', criteria: [{ t: 'Leading and trailing spaces are ignored', ok: true }], pr: 36, sha: '5e0b9a1',
+      evidence: [{ k: 'Tests', sha: '5e0b9a1', v: 'pass', d: 'No new failures', by: 'runner' }, { k: 'Review', sha: '5e0b9a1', v: 'pass', d: 'No findings', by: 'agent' }],
+      handoffs: [{ f: 'alfred', to: 'executor', w: 'Task and 1 criterion', time: '10:22' }, { f: 'executor', to: 'reviewer', w: 'PR #36', time: '10:44' }] }),
+    'k-cart': base({ id: 'k-cart', thread: 't-cart', title: 'Cart badge count off by one', phase: 'done', elapsed: 53, assignedBy: 'kai', doneAt: 'Tuesday 16:05',
+      what: 'Show the right item count after removing an item.', criteria: [{ t: 'Badge matches the cart after removal', ok: true }], pr: 37, sha: 'c4d27f8',
+      evidence: [{ k: 'Tests', sha: 'c4d27f8', v: 'pass', d: 'No new failures', by: 'runner' }, { k: 'Review', sha: 'c4d27f8', v: 'pass', d: 'No findings', by: 'agent' }],
+      handoffs: [{ f: 'alfred', to: 'executor', w: 'Task and 1 criterion', time: '15:13' }, { f: 'executor', to: 'reviewer', w: 'PR #37', time: '15:40' }] })
+  };
+}
+
+/* ---------- Seed Inbox items that are not derived from tasks ---------- */
+function seedInbox() {
+  return [
+    { id: 'i1', to: ['emil'], reason: 'Mentioned you', thread: 't-release', by: 'masha', text: 'Draft notes for 2.8 … @Emil can you check them before we ship?', time: '12:30', readBy: [] },
+    { id: 'i2', to: ['emil', 'masha'], reason: 'Reply in a thread you follow', thread: 't-invoice', by: 'kai', text: 'Thanks. I\'ll tell the two customers it\'s coming this week.', time: '12:40', readBy: [] },
+    { id: 'i3', to: ['masha'], reason: 'Mentioned you', thread: 't-push', by: 'kai', text: '@Masha can we ask for push permission after the first order instead of on launch?', time: '11:15', readBy: [] },
+    { id: 'i4', to: ['emil', 'kai'], reason: 'Task done', thread: 't-cart', by: 'alfred', text: 'Merged PR #37 as c4d27f8. Cart badge count off by one.', time: 'Tue', readBy: ['emil'] },
+    { id: 'i5', to: ['masha'], reason: 'Reply in a thread you follow', thread: 't-staging', by: 'emil', text: 'Done. You\'re in the staging-readers group.', time: 'Yesterday', readBy: ['masha'] }
+  ];
+}
+
+const CHANNEL_SETTINGS_SEED = {
+  'w-billing': { agent: 'none', role: '', skills: [] },
+  'w-general': { agent: 'alfred', role: 'Chief of staff', skills: ['tdd'] },
+  'g-general': { agent: 'none', role: '', skills: [] },
+  'm-general': { agent: 'alfred', role: 'Chief of staff', skills: ['tdd', 'review-gate'] }
+};
+/* ---------- State ---------- */
+let S = null;
+const timers = new Set();
+function later(fn, ms) { const id = setTimeout(() => { timers.delete(id); fn(); }, ms); timers.add(id); return id; }
+function cancel(id) { if (id) { clearTimeout(id); timers.delete(id); } }
+function clearTimers() { timers.forEach(clearTimeout); timers.clear(); }
+const clone = (o) => JSON.parse(JSON.stringify(o));
+
+function freshStory() { return { pos: -1, answerBy: null, mergedBy: null, price: 96 }; }
+function initialState(prev) {
+  return {
+    me: 'emil', theme: prev ? prev.theme : 'system',
+    project: 'web', channel: 'w-billing', thread: 't-annual', mid: 'feed',
+    tasksView: 'list', tasksFilter: 'all', doneOpen: false, boardDoneOpen: false,
+    cols: { left: true, mid: true, right: true }, max: null, mtab: 'right',
+    threads: seedThreads(), tasks: seedTasks(), inbox: seedInbox(), chan: clone(CHANNEL_SETTINGS_SEED),
+    picker: { open: false, prov: 'claude', q: '', sel: 0 }, loaded: { claude: false, codex: false }, detecting: false,
+    dialog: null, drawer: null, palette: null, toasts: [], typing: null,
+    story: freshStory(),
+    clock: 0, runTimer: null, silent: false, offer: prev ? false : true, tour: null, seq: 1
+  };
+}
+
+/* ---------- Helpers ---------- */
+function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+function fmtText(s) {
+  let h = esc(s);
+  h = h.replace(/`([^`]+)`/g, '<code class="inl">$1</code>');
+  h = h.replace(/(^|[\s(])@(Emil|Masha|Kai|Alfred)\b/g, '$1<span class="mention">@$2</span>');
+  return h.split(/\n\n+/).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
+}
+function person(id) { return PEOPLE[id] || { name: id, av: '--av-executor', kind: 'human' }; }
+function avatar(id, cls) {
+  const p = person(id);
+  return '<span class="av' + (p.kind === 'agent' ? ' agent' : '') + (cls ? ' ' + cls : '') + '" style="background:var(' + p.av + ')" title="' + esc(p.name) + '">' + esc(p.name[0]) + '</span>';
+}
+function projectById(id) { return PROJECTS.find(p => p.id === id); }
+function chanById(id) { for (const p of PROJECTS) { const c = p.channels.find(c => c.id === id); if (c) return Object.assign({ project: p.id }, c); } return null; }
+function threadsIn(chanId) { return Object.keys(S.threads).filter(k => S.threads[k].channel === chanId); }
+function projectOfThread(tid) { return chanById(S.threads[tid].channel).project; }
+function roleIn(pid, who) { return (projectById(pid).roles || {})[who] || 'Guest'; }
+function canApprove(pid, who) { return roleIn(pid, who) === 'Approver'; }
+function clockStr(add) { const m = 13 * 60 + 40 + S.clock + (add || 0); return String(Math.floor(m / 60)).padStart(2, '0') + ':' + String(m % 60).padStart(2, '0'); }
+function dur(min) { if (min < 60) return min + 'm'; return Math.floor(min / 60) + 'h ' + (min % 60) + 'm'; }
+function modelLabel(m) { const p = providerOf(m.provider); return p.name + ' · ' + m.id; }
+function shortModel(m) { const mm = modelOf(m.provider, m.id); return (mm ? mm.name : m.id) + ' · ' + m.reasoning; }
+function names(ids) { const n = ids.map(i => person(i).name); return n.length > 1 ? n.slice(0, -1).join(', ') + ' and ' + n[n.length - 1] : n[0]; }
+
+/* ---------- Task derivations (one task model, everything derived) ---------- */
+const LANES = [
+  { id: 'queued', name: 'Queued', who: 'waits for an executor', dot: 'q' },
+  { id: 'progress', name: 'In progress', who: 'executor', dot: 'p' },
+  { id: 'review', name: 'In review', who: 'reviewer', dot: 'r' },
+  { id: 'needs', name: 'Needs you', who: 'people', dot: 'n' },
+  { id: 'ready', name: 'Ready to merge', who: 'people', dot: 'm' },
+  { id: 'done', name: 'Done', who: '', dot: 'd' }
+];
+const LANE_OF = { draft: 'queued', queued: 'queued', design: 'queued', executing: 'progress', fixing: 'progress', review: 'review', needs: 'needs', ready: 'ready', done: 'done' };
+const STATUS = {
+  draft: ['Waiting for confirmation', 'warn'], queued: ['Queued', 'muted'], design: ['Design check', 'info'], executing: ['In progress', 'info'],
+  fixing: ['In progress · fixing review', 'info'], review: ['In review', 'info'], needs: ['Waiting for people', 'warn'], ready: ['Ready to merge', 'ok'], done: ['Done', 'ok']
+};
+function waitsOnPeople(t) { return t.phase === 'needs' || t.phase === 'ready'; }
+function holderText(t) {
+  switch (t.phase) {
+    case 'draft': return 'Waiting for an Approver';
+    case 'queued': return t.queuePos ? 'No. ' + t.queuePos + ' in queue' : 'Waits for an executor';
+    case 'design': return 'Design gate';
+    case 'executing': case 'fixing': return 'Executor';
+    case 'review': return 'Reviewer';
+    case 'needs': return 'Alfred asks ' + names(t.ask.to);
+    case 'ready': return 'Approver to merge';
+    default: return 'Done';
+  }
+}
+function holderId(t) { return { executing: 'executor', fixing: 'executor', review: 'reviewer' }[t.phase] || 'alfred'; }
+const RUNNING = ['design', 'executing', 'fixing', 'review'];
+function statusPill(t) { return '<span class="pill ' + STATUS[t.phase][1] + '">' + icon('tasks', 'xs') + STATUS[t.phase][0] + '</span>'; }
+function passPills(t) { return t.evidence.filter(e => e.sha === t.sha && e.v === 'pass').map(e => '<span class="pill ok">' + esc(e.k.toLowerCase()) + ' ✓ ' + esc(e.sha) + '</span>').join(''); }
+function answerButton(t) { return '<button class="btn sm" data-act="answer" data-id="' + t.id + '">' + icon('arrowRight', 'xs') + 'Answer in thread</button>'; }
+function stepInfo(t) {
+  const total = t.steps.length; const done = t.steps.filter(s => s.s === 'done').length;
+  const cur = t.steps.find(s => s.s === 'run' || s.s === 'wait');
+  const pct = t.phase === 'done' || t.phase === 'ready' ? 100 : total ? Math.round(done / total * 100) : 0;
+  return { total, done, cur, pct, label: total ? 'step ' + Math.min(done + 1, total) + ' of ' + total + (cur ? ' · ' + cur.l : '') : '' };
+}
+function tasksOf(pid) { return Object.values(S.tasks).filter(t => t.project === pid); }
+function peopleCount(pid) { return tasksOf(pid).filter(waitsOnPeople).length; }
+function isMine(t) { return t.assignedBy === S.me || (t.ask && t.ask.to.includes(S.me)) || (t.phase === 'ready' && canApprove(t.project, S.me)); }
+
+/* Inbox: stored items plus alerts derived from task state. A derived alert exists only while its condition holds. */
+function inboxItems(me) {
+  const out = [];
+  for (const t of Object.values(S.tasks)) {
+    if (t.phase === 'needs' && (t.ask.to.includes(me) || me === OWNER)) {
+      out.push({ id: 'needs-' + t.id, reason: 'Needs you', attn: true, thread: t.thread, by: 'alfred', time: t.ask.at, text: 'Alfred asks ' + names(t.ask.to) + ': ' + t.ask.text, unread: true });
+    }
+    if (t.phase === 'ready' && (t.assignedBy === me || canApprove(t.project, me))) {
+      out.push({ id: 'ready-' + t.id, reason: 'Ready to merge', thread: t.thread, by: 'alfred', time: t.readyAt || '', text: t.title + ' · PR #' + t.pr + ' · checks pass on ' + t.sha, unread: true });
+    }
+    if (t.phase === 'done' && t.doneNew && (t.assignedBy === me || t.confirmedBy === me) && !(t.doneReadBy || []).includes(me)) {
+      out.push({ id: 'done-' + t.id, reason: 'Task done', thread: t.thread, by: 'alfred', time: t.doneAt, text: 'Merged PR #' + t.pr + ' as ' + t.sha + '. ' + t.title + '.', unread: true, taskId: t.id });
+    }
+  }
+  for (const i of S.inbox) if (i.to.includes(me)) out.push(Object.assign({}, i, { unread: !i.readBy.includes(me) }));
+  return out.sort((a, b) => (b.unread - a.unread) || ((b.attn ? 1 : 0) - (a.attn ? 1 : 0)));
+}
+function unreadCount(me) { return inboxItems(me).filter(i => i.unread).length; }
+
+/* ---------- Column state ---------- */
+function visibleCols() { return S.max ? [S.max] : ['left', 'mid', 'right'].filter(c => S.cols[c]); }
+const mqNarrow = window.matchMedia('(max-width: 760px)');
+function isNarrow() { return mqNarrow.matches; }
+/* Writes a region only when its HTML changed, so open <details>, selection and focus survive unrelated renders. */
+function paint(el, html) { if (el._html === html) return false; el._html = html; el.innerHTML = html; return true; }
+function colTools(col) {
+  const maxed = S.max === col;
+  return '<div class="col-tools"><button class="ibtn desk" data-act="col-max" data-col="' + col + '" aria-label="' + (maxed ? 'Restore columns' : 'Maximize column') + '" title="' + (maxed ? 'Restore' : 'Maximize') + '">' + icon(maxed ? 'min' : 'max', 'sm') + '</button>' +
+    '<button class="ibtn desk" data-act="col-hide" data-col="' + col + '" aria-label="Hide column" title="Hide column">' + icon('hide', 'sm') + '</button></div>';
+}
+
+/* ---------- Render: top bar ---------- */
+function renderTop() {
+  const vis = visibleCols();
+  const tg = [['left', 'panelL', 'Projects'], ['mid', 'panelM', 'Feed'], ['right', 'panelR', 'Thread']].map(([c, ic, n]) =>
+    '<button data-act="col-toggle" data-col="' + c + '" aria-pressed="' + vis.includes(c) + '" aria-label="Show or hide ' + n + ' column" title="' + n + '">' + icon(ic, 'sm') + '</button>').join('');
+  const who = ME_CHOICES.map(id => '<button data-act="me" data-id="' + id + '" aria-pressed="' + (S.me === id) + '" title="Sign in as ' + person(id).name + '">' + avatar(id) + '<span class="hide-m">' + person(id).name + '</span></button>').join('');
+  const th = [['light', 'sun'], ['dark', 'moon'], ['system', 'monitor']].map(([v, ic]) =>
+    '<button data-act="theme" data-v="' + v + '" aria-pressed="' + (S.theme === v) + '" aria-label="Theme: ' + v + '" title="' + v[0].toUpperCase() + v.slice(1) + '">' + icon(ic, 'sm') + '</button>').join('');
+  paint(document.getElementById('top'),
+    '<div class="toggles" id="top-toggles" role="group" aria-label="Columns">' + tg + '</div>' +
+    '<button class="search" data-act="palette" aria-label="Go to or search">' + icon('search', 'sm') + '<span class="lbl">Go to or search</span><span class="kbd">⌘K</span></button>' +
+    '<div class="top-right">' +
+    '<button class="btn ghost" data-act="tour" id="tour-btn" title="Guided tour">' + icon('compass', 'sm') + '<span class="bl hide-m">Tour</span></button>' +
+    '<button class="btn ghost" data-act="story" title="Play the story">' + icon('play', 'sm') + '<span class="bl hide-m">Play the story</span></button>' +
+    '<button class="btn ghost" data-act="reset" title="Reset demo">' + icon('reset', 'sm') + '<span class="sr">Reset demo</span></button>' +
+    '<div class="seg who-seg" id="id-switch" role="group" aria-label="Signed in as">' + who + '</div>' +
+    '<div class="seg icons hide-m" role="group" aria-label="Theme">' + th + '</div>' +
+    '<button class="ibtn show-m" data-act="theme-cycle" aria-label="Theme: ' + S.theme + '. Change theme">' + icon({ light: 'sun', dark: 'moon', system: 'monitor' }[S.theme], 'sm') + '</button>' +
+    '</div>');
+}
+
+/* ---------- Render: left column ---------- */
+function renderLeft() {
+  let h = '<div class="col-head"><span class="brand grow">Factory</span>' + colTools('left') + '</div><div class="col-body"><nav class="nav" id="left-projects" aria-label="Projects">';
+  h += '<div class="nav-sec">Projects<button class="ibtn" data-act="toast" data-msg="New projects are created by a workspace admin." aria-label="New project">' + icon('plus', 'xs') + '</button></div>';
+  for (const p of PROJECTS) {
+    const open = S.project === p.id;
+    h += '<button class="row" data-act="project" data-id="' + p.id + '" aria-expanded="' + open + '">' + icon('folder', 'sm') + '<span class="lbl">' + esc(p.name) + '</span></button>';
+    if (open) {
+      const n = peopleCount(p.id);
+      h += '<div class="nest" id="proj-nest">';
+      h += '<button class="row' + (S.mid === 'tasks' ? ' on' : '') + '" data-act="tasks" data-id="' + p.id + '" id="nav-tasks">' + icon('tasks', 'sm') + '<span class="lbl">Tasks</span><span class="count' + (n ? ' warn' : ' zero') + '" title="Tasks waiting on people">' + n + '</span></button>';
+      h += '<div class="nav-sec">Channels<button class="ibtn" data-act="toast" data-msg="Channel creation is not part of this prototype." aria-label="New channel">' + icon('plus', 'xs') + '</button></div>';
+      for (const c of p.channels) {
+        h += '<button class="row' + (S.mid === 'feed' && S.channel === c.id ? ' on' : '') + '" data-act="channel" data-id="' + c.id + '">' + icon('hash', 'sm') + '<span class="lbl">' + esc(c.name) + '</span></button>';
+      }
+      h += '</div>';
+    }
+  }
+  const u = unreadCount(S.me);
+  h += '<div class="nav-sec" style="padding-top:14px"></div>';
+  h += '<button class="row' + (S.mid === 'inbox' ? ' on' : '') + '" data-act="inbox" id="nav-inbox">' + icon('inbox', 'sm') + '<span class="lbl">Inbox</span><span class="count' + (u ? '' : ' zero') + '">' + u + '</span></button>';
+  h += '<button class="row' + (S.mid === 'people' ? ' on' : '') + '" data-act="people">' + icon('users', 'sm') + '<span class="lbl">People &amp; agents</span></button>';
+  h += '</nav></div><div class="left-foot"><div class="me-row">' + avatar(S.me, 'md') + '<b>' + person(S.me).name + '</b><span class="role">' + roleIn(S.project, S.me) + '</span></div>' +
+    '<button class="row" data-act="people">' + icon('gear', 'sm') + '<span class="lbl">Settings</span></button></div>';
+  paint(document.getElementById('col-left'), h);
+}
+
+/* ---------- Render: middle column ---------- */
+function renderMid() {
+  const el = document.getElementById('col-mid');
+  const body = el.querySelector('.col-body, .board-wrap');
+  const keep = body ? body.scrollTop : 0; const keepX = el.querySelector('.board-wrap') ? el.querySelector('.board-wrap').scrollLeft : 0;
+  const key = S.mid + S.channel + S.project;
+  el.setAttribute('aria-label', { feed: 'Channel feed', tasks: 'Tasks', inbox: 'Inbox', people: 'People and agents' }[S.mid]);
+  const changed = paint(el, S.mid === 'feed' ? feedView() : S.mid === 'tasks' ? tasksView() : S.mid === 'inbox' ? inboxView() : peopleView());
+  if (changed && el._key === key) { const nb = el.querySelector('.col-body, .board-wrap'); if (nb) nb.scrollTop = keep; const bw = el.querySelector('.board-wrap'); if (bw) bw.scrollLeft = keepX; }
+  el._key = key;
+}
+
+function feedView() {
+  const c = chanById(S.channel); const p = projectById(c.project); const cs = S.chan[c.id];
+  const agentBtn = cs.agent !== 'none'
+    ? '<button class="chan-agent set" data-act="chan-settings" id="chan-settings-btn" title="Channel settings">' + icon('gear', 'sm') + '<span class="hide-m">' + esc(person(cs.agent).name + ' · ' + cs.role) + '</span></button>'
+    : '<button class="chan-agent" data-act="chan-settings" id="chan-settings-btn" title="Channel settings">' + icon('gear', 'sm') + '<span class="hide-m">Channel settings</span></button>';
+  let h = '<div class="col-head"><h2>#' + esc(c.name) + '</h2><span class="sub grow">' + esc(p.name) + ' · ' + esc(c.desc) + '</span>' + agentBtn + colTools('mid') + '</div>';
+  if (p.channels.length > 1) {
+    h += '<div class="chan-tabs" id="chan-switcher" role="group" aria-label="Channels in ' + esc(p.name) + '">' + p.channels.map(ch => '<button data-act="channel" data-id="' + ch.id + '" aria-pressed="' + (ch.id === S.channel) + '">#' + esc(ch.name) + '</button>').join('') + '</div>';
+  }
+  h += '<div class="col-body"><div class="feed">';
+  let lastDay = null;
+  for (const tid of threadsIn(c.id)) {
+    const th = S.threads[tid]; const msgs = th.msgs.filter(m => m.by); const first = msgs[0]; const last = msgs[msgs.length - 1];
+    if (th.day !== lastDay) { h += '<div class="day"><span>' + esc(th.day) + '</span></div>'; lastDay = th.day; }
+    const who = [...new Set(msgs.map(m => m.by))].slice(0, 4);
+    const t = th.taskId && S.tasks[th.taskId];
+    h += '<button class="tcard' + (S.thread === tid ? ' sel' : '') + '" data-act="thread" data-id="' + tid + '">' +
+      '<span class="who">' + avatar(first.by) + '<b>' + esc(person(first.by).name) + '</b><time>' + esc(first.time) + '</time></span>' +
+      '<span class="title">' + esc(th.title) + '</span><span class="first">' + esc(first.text.replace(/`/g, '')) + '</span>' +
+      '<span class="meta"><span class="avs">' + who.map(w => avatar(w)).join('') + '</span><span class="replies">' + (msgs.length - 1) + ' replies</span><span>Last reply ' + esc(last.time) + '</span>' +
+      (t ? statusPill(t) : '') + '</span></button>';
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function taskRow(t) {
+  const si = stepInfo(t); const ch = chanById(S.threads[t.thread].channel);
+  return '<button class="trow' + (t.phase === 'needs' ? ' attn' : '') + (S.thread === t.thread ? ' sel' : '') + '" data-act="thread" data-id="' + t.thread + '">' +
+    '<span class="dot ' + LANES.find(l => l.id === LANE_OF[t.phase]).dot + '"></span><span class="t-title">' + esc(t.title) + '</span><span class="t-time">' + dur(t.elapsed) + '</span>' +
+    '<span class="t-meta"><span>#' + esc(ch.name) + '</span><span class="pill ' + (t.phase === 'needs' ? 'warn' : 'info') + '">' + esc(holderText(t)) + '</span>' +
+    (si.total && t.phase !== 'done' ? '<span>' + esc(si.label) + '</span><span class="bar sm"><i style="width:' + si.pct + '%"></i></span>' : '') +
+    (t.pr ? '<span class="pill">PR #' + t.pr + '</span>' : '') + passPills(t) + '</span></button>';
+}
+
+function tasksView() {
+  const p = projectById(S.project);
+  const board = S.max === 'mid' || S.tasksView === 'board';
+  let list = tasksOf(p.id); if (S.tasksFilter === 'mine') list = list.filter(isMine);
+  let h = '<div class="col-head"><h2>Tasks</h2><span class="sub grow">' + esc(p.name) + '</span><div class="tasks-head-tools">' +
+    '<div class="seg" role="group" aria-label="View"><button data-act="tasks-view" data-v="list" aria-pressed="' + !board + '">' + icon('list', 'xs') + '<span class="hide-m">List</span></button><button data-act="tasks-view" data-v="board" aria-pressed="' + board + '">' + icon('board', 'xs') + '<span class="hide-m">Board</span></button></div>' +
+    '<div class="seg" role="group" aria-label="Filter"><button data-act="tasks-filter" data-v="mine" aria-pressed="' + (S.tasksFilter === 'mine') + '">Mine</button><button data-act="tasks-filter" data-v="all" aria-pressed="' + (S.tasksFilter === 'all') + '">All</button></div></div>' + colTools('mid') + '</div>';
+  if (board) {
+    h += '<div class="board-wrap" id="tasks-board"><div class="board">';
+    for (const l of LANES) {
+      const items = list.filter(t => LANE_OF[t.phase] === l.id);
+      if (l.id === 'done' && !S.boardDoneOpen) { h += '<div class="lane fold"><button data-act="board-done" aria-label="Show done tasks">' + icon('chevRight', 'xs') + 'Done · ' + items.length + '</button></div>'; continue; }
+      h += '<div class="lane' + (l.id === 'needs' ? ' attn' : '') + '"><div class="lane-h"><span class="dot ' + l.dot + '"></span>' + l.name + ' <span class="n">' + items.length + '</span><span class="who">' + l.who + '</span>' +
+        (l.id === 'done' ? '<button class="ibtn" data-act="board-done" aria-label="Fold done">' + icon('chevLeft', 'xs') + '</button>' : '') + '</div>';
+      if (!items.length) h += '<div class="lane-empty">Nothing here</div>';
+      for (const t of items) h += boardCard(t);
+      h += '</div>';
+    }
+    h += '</div></div>';
+    return h;
+  }
+  const groups = [['In progress', ['queued', 'progress', 'review']], ['Needs you', ['needs']], ['Ready to merge', ['ready']], ['Done', ['done']]].map(([g, lanes]) => [g, t => lanes.includes(LANE_OF[t.phase])]);
+  h += '<div class="col-body"><div class="tlist" id="tasks-list">';
+  for (const [g, f] of groups) {
+    const items = list.filter(f);
+    if (g === 'Done') {
+      h += '<div class="group"><button data-act="done-toggle" aria-expanded="' + S.doneOpen + '">' + icon(S.doneOpen ? 'chevDown' : 'chevRight', 'xs') + 'Done · ' + items.length + '</button></div>';
+      if (S.doneOpen) h += items.map(taskRow).join('');
+      continue;
+    }
+    if (!items.length && g !== 'In progress') continue;
+    h += '<div class="group' + (g === 'Needs you' ? ' attn' : '') + '">' + g + ' · ' + items.length + '</div>' + (items.length ? items.map(taskRow).join('') : '<div class="lane-empty">Nothing running</div>');
+  }
+  h += '</div></div>';
+  return h;
+}
+
+function boardCard(t) {
+  const si = stepInfo(t); const ch = chanById(S.threads[t.thread].channel);
+  let h = '<div class="bcard' + (S.thread === t.thread ? ' sel' : '') + '" data-act="thread" data-id="' + t.thread + '" tabindex="0" role="button">' +
+    '<span class="c-title">' + esc(t.title) + '</span>';
+  if (t.phase === 'needs') h += '<span class="askq">Alfred: ' + esc(t.ask.text) + '</span>';
+  h += '<span class="c-meta"><span>#' + esc(ch.name) + '</span>' + (si.total && RUNNING.includes(t.phase) ? '<span>' + esc(si.label) + '</span>' : '') +
+    (t.round ? '<span class="pill warn">1 finding · round ' + t.round + '</span>' : '') + (t.pr ? '<span class="pill">PR #' + t.pr + '</span>' : '') + '</span>';
+  if (RUNNING.includes(t.phase) && si.total) h += '<span class="bar"><i style="width:' + si.pct + '%"></i></span>';
+  if (t.phase === 'ready') h += '<span class="c-meta">' + passPills(t) + '</span>';
+  const hid = holderId(t);
+  h += '<span class="foot">' + (t.phase === 'queued' || t.phase === 'draft' ? avatar(t.assignedBy) + 'Assigned by ' + esc(person(t.assignedBy).name) : avatar(hid) + esc(holderText(t))) + '<span class="t tnum">' + dur(t.elapsed) + '</span></span>';
+  if (t.phase === 'needs') h += answerButton(t);
+  if (t.phase === 'ready') h += mergeButton(t, true);
+  return h + '</div>';
+}
+
+function inboxView() {
+  const items = inboxItems(S.me);
+  let h = '<div class="col-head"><h2>Inbox</h2><span class="sub grow">' + person(S.me).name + '</span>' + colTools('mid') + '</div><div class="col-body"><div class="ilist" id="inbox-list">';
+  if (!items.length) h += '<div class="empty">Nothing waiting for you.</div>';
+  let earlier = false;
+  for (const i of items) {
+    if (!i.unread && !earlier) { h += '<div class="group">Earlier</div>'; earlier = true; }
+    const th = S.threads[i.thread]; const ch = chanById(th.channel);
+    h += '<button class="irow' + (i.unread ? ' unread' : '') + (i.attn ? ' attn' : '') + '" data-act="inbox-item" data-id="' + i.id + '" data-thread="' + i.thread + '" id="inbox-' + i.id + '">' + avatar(i.by) +
+      '<span class="reason">' + (i.unread ? '<span class="dot"></span>' : '') + esc(i.reason) + '</span><time>' + esc(i.time) + '</time>' +
+      '<span class="txt"><span class="where">#' + esc(ch.name) + ' / ' + esc(th.title) + '</span><br>' + esc(i.text) + '</span></button>';
+  }
+  h += '</div><p class="note">Alerts clear themselves: Needs you when someone answers in the thread, Ready to merge when the PR is merged or declined, Task done once you read it.</p></div>';
+  return h;
+}
+
+function peopleView() {
+  const p = projectById(S.project);
+  let h = '<div class="col-head"><h2>People &amp; agents</h2><span class="sub grow">' + esc(p.name) + '</span>' + colTools('mid') + '</div><div class="col-body"><div class="plist">';
+  h += '<div class="group">People</div>';
+  for (const id of ['emil', 'masha', 'kai']) h += '<div class="prow">' + avatar(id, 'md') + '<b>' + person(id).name + (id === S.me ? ' (you)' : '') + '</b><span class="pill' + (roleIn(p.id, id) === 'Approver' ? ' info' : '') + '">' + roleIn(p.id, id) + '</span><span class="pdesc">' + person(id).title + '</span></div>';
+  h += '<div class="group">Agents</div>';
+  for (const id of ['alfred', 'executor', 'reviewer', 'assistant']) {
+    const a = person(id);
+    h += '<div class="prow">' + avatar(id, 'md') + '<b>' + a.name + '</b><span class="pill">' + a.role + '</span><span class="pdesc">' + (a.model ? esc(a.model) + ' · ' : 'Model picked per thread · ') + 'runs on factory-host-1 · owner Emil</span></div>';
+  }
+  h += '</div><div class="note" id="persona-note"><b style="color:var(--fg)">Workspace settings</b><span>Chief of staff name: <b style="color:var(--fg)">Alfred</b>. The persona name is set per workspace; the role stays Chief of staff.</span>' +
+    '<span>Context handoff threshold: 250k tokens. Question reminder after 2 hours, then to the project owner after one working day.</span></div></div>';
+  return h;
+}
+
+/* ---------- Render: thread ---------- */
+function renderThreadHead() {
+  const th = S.threads[S.thread]; const c = chanById(th.channel); const t = th.taskId && S.tasks[th.taskId];
+  const act = t ? statusPill(t)
+    : '<button class="btn sm" data-act="hand" id="hand-btn" title="Turn this thread into a task for Alfred">' + avatar('alfred') + 'Hand to Alfred</button>';
+  document.getElementById('thread-head').innerHTML = '<div class="crumb grow"><span class="c1">#' + esc(c.name) + ' /</span><span class="c2">' + esc(th.title) + '</span></div>' + act + colTools('right');
+}
+
+function msgHtml(m) {
+  if (m.kind === 'task') return '<div class="msg">' + taskCard(S.tasks[m.id]) + '</div>';
+  const p = person(m.by); const own = m.by === S.me;
+  let meta = '';
+  if (p.kind === 'agent') {
+    const parts = []; if (m.by === 'alfred' || m.by === 'executor' || m.by === 'reviewer') parts.push(p.role);
+    parts.push(m.model ? modelLabel(m.model) : p.model);
+    meta = '<span class="agent-meta">' + esc(parts.join(' · ')) + '</span>';
+  }
+  if (own) return '<div class="msg own"><div class="msg-head"><time>' + esc(m.time) + '</time>' + avatar(m.by) + '</div><div class="msg-body">' + fmtText(m.text) + '</div></div>';
+  return '<div class="msg"><div class="msg-head">' + avatar(m.by) + '<b>' + esc(p.name) + '</b>' + meta + '<time>' + esc(m.time) + '</time></div><div class="msg-body">' + fmtText(m.text) + '</div></div>';
+}
+
+function renderThread() {
+  renderThreadHead();
+  const th = S.threads[S.thread]; const sc = document.getElementById('thread-scroll');
+  const atBottom = sc.scrollHeight - sc.scrollTop - sc.clientHeight < 40; const prevTop = sc.scrollTop;
+  let h = '<div class="day"><span>' + esc(th.day) + '</span></div>' + th.msgs.map(msgHtml).join('');
+  if (S.typing && S.typing.thread === S.thread) h += '<div class="typing">' + avatar(S.typing.by) + '<span>' + esc(person(S.typing.by).name) + ' is answering with ' + esc(S.typing.model) + '</span><span class="dots"><i></i><i></i><i></i></span></div>';
+  paint(document.getElementById('thread-msgs'), h);
+  const sig = S.thread + ':' + th.msgs.length + ':' + (S.typing ? 1 : 0);
+  if (sc._thread !== S.thread) sc.scrollTop = sc.scrollHeight;
+  else if (sc._sig !== sig && (atBottom || sc._len < th.msgs.length)) sc.scrollTop = sc.scrollHeight;
+  else sc.scrollTop = prevTop;
+  sc._thread = S.thread; sc._sig = sig; sc._len = th.msgs.length;
+  renderComposer();
+}
+
+function renderComposer() {
+  const wrap = document.getElementById('composer-wrap'); const key = S.thread + '|' + S.me;
+  if (wrap._key !== key) {
+    const prevDraft = wrap._key && wrap._key.split('|')[0] === S.thread ? (document.getElementById('composer-input') || {}).value : '';
+    wrap.innerHTML = '<div class="composer"><label class="sr" for="composer-input">Reply in thread</label><textarea id="composer-input" rows="2" placeholder="Reply as ' + person(S.me).name + '…"></textarea>' +
+      '<div class="composer-row"><button class="ibtn" data-act="toast" data-msg="Attachments are not part of this prototype." aria-label="Attach a file">' + icon('clip', 'sm') + '</button><span class="grow"></span>' +
+      '<button class="model-btn" id="model-btn" data-act="model-btn" aria-haspopup="dialog" aria-expanded="false"></button>' +
+      '<button class="send" id="send-btn" data-act="send" aria-label="Send" disabled>' + icon('arrowUp', 'sm') + '</button></div></div>' +
+      '<div class="hint">Enter to send · Shift+Enter for a new line · @ to mention</div>';
+    if (prevDraft) wrap.querySelector('textarea').value = prevDraft;
+    wrap._key = key;
+  }
+  updateComposerBits();
+}
+function updateComposerBits() {
+  const m = S.threads[S.thread].model; const b = document.getElementById('model-btn'); if (!b) return;
+  b.innerHTML = icon(providerOf(m.provider).ic, 'prov-ic ' + m.provider) + '<span class="lbl">' + esc(shortModel(m)) + '</span>' + icon('chevDown', 'xs');
+  b.setAttribute('aria-expanded', S.picker.open);
+  b.setAttribute('aria-label', 'Model: ' + shortModel(m) + '. Change model');
+  const ta = document.getElementById('composer-input');
+  document.getElementById('send-btn').disabled = !ta.value.trim();
+}
+
+/* ---------- Task card ---------- */
+function mergeButton(t, small) {
+  const ok = canApprove(t.project, S.me);
+  return '<span class="task-acts"><button class="btn primary' + (small ? ' sm' : '') + '" data-act="merge" data-id="' + t.id + '"' + (ok ? '' : ' disabled') + ' id="' + (small ? '' : 'merge-' + t.id) + '">' + icon('merge', 'sm') + 'Merge PR #' + t.pr + '</button>' +
+    (ok ? '' : '<span class="deny">' + icon('lock', 'xs') + esc(person(S.me).name) + '\'s role can\'t merge in ' + esc(projectById(t.project).name) + '</span>') + '</span>';
+}
+function stepIcon(s) { return s === 'done' ? icon('circleCheck', 'sm ic-ok') : s === 'run' ? icon('circleDot', 'sm ic-run') : s === 'wait' ? icon('alert', 'sm ic-warn') : icon('circle', 'sm ic-todo'); }
+function diffHtml(d) { return '<div class="diff">' + d.map(([f, a, r]) => '<span>' + esc(f) + ' <span class="add">+' + a + '</span> <span class="del">−' + r + '</span></span>').join('') + '</div>'; }
+
+function taskCard(t) {
+  if (!t) return '';
+  const [st, stc] = STATUS[t.phase]; const pname = projectById(t.project).name; const si = stepInfo(t);
+  let h = '<article class="task' + (t.phase === 'needs' ? ' attn' : '') + '" id="card-' + t.id + '" aria-label="Task ' + esc(t.title) + '">';
+  h += '<div class="task-top">' + icon('tasks', 'sm') + '<span class="ttl">' + esc(t.title) + '<small>Task for Alfred · ' + esc(pname) + '</small></span><span class="pill ' + stc + '">' + st + '</span></div>';
+  const details = '<dl class="kv"><dt>What to do</dt><dd>' + esc(t.what) + '</dd><dt>Acceptance</dt><dd><ul class="crit">' +
+    t.criteria.map(c => '<li>' + icon(c.ok ? 'circleCheck' : 'circle', 'sm ' + (c.ok ? 'ic-ok' : 'ic-todo')) + '<span>' + esc(c.t) + '</span></li>').join('') + '</ul></dd>' +
+    '<dt>Assigned by</dt><dd>' + esc(person(t.assignedBy).name) + (t.confirmedBy && t.confirmedBy !== t.assignedBy ? ' · confirmed by ' + esc(person(t.confirmedBy).name) : '') + '</dd>' +
+    '<dt>Repositories</dt><dd>' + t.repos.map(r => '<span class="pill">' + icon('repo', 'xs') + esc(r) + '</span>').join(' ') + '</dd>' +
+    '<dt>Status</dt><dd>' + st + (t.phase !== 'draft' ? ' · ' + esc(holderText(t)) : '') + '</dd></dl>';
+
+  if (t.phase === 'draft') {
+    const ok = canApprove(t.project, S.me);
+    h += '<div class="task-sec">' + details + '</div><div class="task-sec" id="confirm-' + t.id + '"><div class="task-acts"><button class="btn primary" data-act="confirm" data-id="' + t.id + '"' + (ok ? '' : ' disabled') + '>' + icon('check', 'sm') + 'Confirm</button>' +
+      (ok ? '<span class="deny">' + icon('shield', 'xs') + 'You are an Approver in ' + esc(pname) + '</span>' : '<span class="deny">' + icon('lock', 'xs') + esc(person(S.me).name) + '\'s role can\'t confirm tasks in ' + esc(pname) + '</span>') + '</div></div>';
+    return h + '</article>';
+  }
+  if (t.handoffs.length) {
+    h += '<div class="task-sec" id="handoffs-' + t.id + '"><div class="lbl-up">Handed over</div>' + t.handoffs.map(x =>
+      '<div class="hand"><span class="ft">' + avatar(x.f) + icon('arrowRight', 'xs') + avatar(x.to) + esc(person(x.f).name) + ' → ' + esc(person(x.to).name) + '</span><span class="what">' + esc(x.w) + '</span><time>' + esc(x.time) + '</time></div>').join('') +
+      '<div class="task-acts"><button class="btn sm" data-act="open-work" data-id="' + t.id + '">' + icon('layers', 'xs') + 'Open agent work</button>' + (t.evidence.length ? '<span class="deny">' + icon('shield', 'xs') + 'Evidence · ' + t.evidence.length + '</span>' : '') + '</div></div>';
+  }
+  if (t.phase === 'needs') {
+    h += '<div class="task-sec"><div class="ask"><span><b>Waiting for people.</b> Alfred asked ' + esc(names(t.ask.to)) + ': ' + esc(t.ask.text) + '</span><span class="task-acts">' + answerButton(t) + '<span class="deny">Sent to the Inbox of ' + esc(names(t.ask.to.concat(t.ask.to.includes(OWNER) ? [] : [OWNER]))) + '</span></span></div></div>';
+  }
+  if (t.design) h += '<div class="task-sec"><div class="gate">' + icon('circleCheck', 'sm ic-ok') + '<span><b>Design gate · Design OK</b> · 1 note<br><span class="d">' + esc(t.design) + '</span></span></div></div>';
+  if (t.phase === 'design') h += '<div class="task-sec"><div class="gate">' + icon('circleDot', 'sm ic-run') + '<span><b>Design gate</b> is reviewing the plan<br><span class="d">Checks the plan against the glossary and ADRs before any code.</span></span></div></div>';
+  if (t.steps.length && t.phase !== 'queued') {
+    const running = RUNNING.includes(t.phase);
+    h += '<div class="task-sec" id="steps-' + t.id + '"><div class="prog"><span class="tnum">' + (t.phase === 'done' ? 'All steps done' : esc(si.label.split(' · ')[0])) + '</span><span class="bar"><i style="width:' + si.pct + '%"></i></span><span class="tnum">' + dur(t.elapsed) + '</span>' +
+      (running && t.id === 'k-annual' && S.story.pos >= 0 ? '<button class="btn sm ghost" data-act="ff" title="Skip ahead to the next point that needs people">' + icon('ff', 'xs') + 'Fast-forward</button>' : '') + '</div><div class="steps">';
+    for (const s of t.steps) h += '<div class="step' + (s.s === 'todo' ? ' todo' : '') + '">' + stepIcon(s.s) + '<span>' + esc(s.l) + '</span><span class="st tnum">' + esc(s.t || '') + '</span></div>' + (s.diff ? diffHtml(s.diff) : '');
+    h += '</div></div>';
+  }
+  if (t.evidence.length) {
+    h += '<div class="task-sec" id="evidence-' + t.id + '"><div class="lbl-up">' + icon('shield', 'xs') + 'Evidence</div>' + t.evidence.map(e =>
+      '<div class="ev">' + icon(e.v === 'pass' ? 'circleCheck' : 'alert', 'sm ' + (e.v === 'pass' ? 'ic-ok' : 'ic-warn')) + '<span><b>' + esc(e.k) + '</b> ' + (e.v === 'pass' ? '✓' : '· changes requested') + ' on <code class="inl">' + esc(e.sha) + '</code> <span class="d">' + esc(e.d) + '</span></span><span class="by">' + esc(e.by) + '</span></div>').join('') + '</div>';
+  }
+  if (t.phase === 'ready') h += '<div class="task-sec">' + mergeButton(t, false) + '</div>';
+  if (t.phase === 'done') h += '<div class="task-sec"><div class="gate">' + icon('merge', 'sm ic-ok') + '<span><b>Merged PR #' + t.pr + '</b> as <code class="inl">' + esc(t.sha) + '</code> · ' + esc(t.doneAt) + '</span></div></div>';
+  if (t.phase === 'queued') h += '<div class="task-sec"><div class="gate">' + icon('clock', 'sm ic-todo') + '<span>' + esc(holderText(t)) + '<br><span class="d">An executor picks it up when the one ahead finishes.</span></span></div></div>';
+  h += '<div class="task-sec"><details class="more"><summary>' + icon('chevRight', 'xs chev') + 'Task details</summary><div>' + details + '</div></details></div>';
+  return h + '</article>';
+}
+
+/* ---------- Render: drawer ---------- */
+function renderDrawer() {
+  const root = document.getElementById('drawer-root');
+  if (!S.drawer) { root.innerHTML = ''; return; }
+  const t = S.tasks[S.drawer]; if (!t) { S.drawer = null; root.innerHTML = ''; return; }
+  const keep = root.querySelector('.col-body') ? root.querySelector('.col-body').scrollTop : 0;
+  let h = '<div class="drawer-scrim" data-act="drawer-close"></div><aside class="drawer" id="agent-drawer" role="dialog" aria-label="Agent work"><div class="col-head"><div class="grow" style="min-width:0"><h2>Agent work</h2><div class="sub">' + esc(t.title) + (t.pr ? ' · PR #' + t.pr : '') + '</div></div><button class="ibtn" data-act="drawer-close" aria-label="Close">' + icon('x', 'sm') + '</button></div><div class="col-body">';
+  h += '<section class="dsec"><div class="lbl-up">Handoffs</div><div class="tl">' + (t.timeline.length ? t.timeline.map(([tm, tx, k]) => '<div class="' + (k || '') + '"><time>' + esc(tm) + '</time>' + esc(tx) + '</div>').join('') : '<div>Nothing yet</div>') + '</div></section>';
+  if (t.ctx) h += '<div class="ctx">' + icon('layers', 'sm') + '<span><b>Context handoff · automatic</b><br>' + esc(t.ctx) + '</span></div>';
+  h += '<section class="dsec"><div class="lbl-up">Executor ↔ Reviewer</div><div class="pair">' + (t.agentLog.length ? t.agentLog.map(([by, tm, tx]) => msgHtml({ by, time: tm, text: tx })).join('') : '<div class="empty">The pair has not talked yet.</div>') + '</div></section>';
+  h += '<section class="dsec"><div class="lbl-up">Evidence</div>' + (t.evidence.length ? '<div style="overflow-x:auto"><table class="etable"><thead><tr><th>Kind</th><th>SHA</th><th>Verdict</th><th>Recorded by</th></tr></thead><tbody>' +
+    t.evidence.map(e => '<tr><td>' + esc(e.k) + '</td><td><code class="inl">' + esc(e.sha) + '</code></td><td>' + (e.v === 'pass' ? '<span class="pill ok">pass</span>' : '<span class="pill warn">changes</span>') + ' <span style="color:var(--muted-fg)">' + esc(e.d) + '</span></td><td>' + esc(e.by) + '</td></tr>').join('') + '</tbody></table></div>' : '<div class="empty">No evidence recorded yet.</div>') + '</section>';
+  h += '</div></aside>';
+  root.innerHTML = h;
+  const b = root.querySelector('.col-body'); if (b && root._id === S.drawer) b.scrollTop = keep;
+  root._id = S.drawer;
+}
+
+/* ---------- Render: mobile tabs, columns ---------- */
+function renderMtabs() {
+  const midName = { feed: 'Feed', tasks: 'Tasks', inbox: 'Inbox', people: 'People' }[S.mid];
+  document.getElementById('mtabs').innerHTML = [['left', 'folder', 'Projects'], ['mid', S.mid === 'tasks' ? 'tasks' : S.mid === 'inbox' ? 'inbox' : 'hash', midName], ['right', 'message', 'Thread']].map(([v, ic, n]) =>
+    '<button data-act="mtab" data-v="' + v + '" aria-pressed="' + (S.mtab === v) + '">' + (IC[ic] ? icon(ic, 'sm') : '') + n + '</button>').join('');
+}
+function applyCols() {
+  const cols = document.getElementById('cols'); const vis = visibleCols();
+  cols.dataset.vis = vis.map(c => c[0]).join(''); cols.dataset.mtab = S.mtab;
+  for (const c of ['left', 'mid', 'right']) document.getElementById('col-' + c).hidden = !isNarrow() && !vis.includes(c);
+}
+function applyTheme() { const r = document.documentElement; if (S.theme === 'system') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', S.theme); }
+
+function render() {
+  applyTheme(); renderTop(); renderLeft(); renderMid(); renderThread(); renderDrawer(); renderMtabs(); applyCols();
+  if (S.picker.open) positionPicker();
+  renderToasts(); renderOffer();
+  if (S.tour) requestAnimationFrame(tourPlace);
+}
+/* ---------- Navigation ---------- */
+function openProject(pid) {
+  const p = projectById(pid); S.project = pid; S.mid = 'feed'; S.channel = p.channels[p.channels.length - 1].id; S.mtab = 'mid';
+}
+function openChannel(cid) { S.channel = cid; S.project = chanById(cid).project; S.mid = 'feed'; S.mtab = 'mid'; }
+function openThread(tid) {
+  if (S.picker.open) closePicker();
+  S.thread = tid; const c = chanById(S.threads[tid].channel);
+  S.project = c.project; if (S.mid === 'feed') S.channel = c.id;
+  S.mtab = 'right';
+  if (S.max !== 'right') S.max = null;
+  S.cols.right = true;
+}
+function showTasks(pid) { S.project = pid; S.mid = 'tasks'; S.mtab = 'mid'; }
+
+/* ---------- Toasts ---------- */
+function toast(o) {
+  if (S.silent) return;
+  const t = Object.assign({ id: S.seq++ }, o); S.toasts.push(t); if (S.toasts.length > 3) S.toasts.shift();
+  later(() => { S.toasts = S.toasts.filter(x => x.id !== t.id); renderToasts(); }, o.ms || 5200);
+  renderToasts();
+}
+function renderToasts() {
+  const root = document.getElementById('toast-root'); const sig = S.toasts.map(t => t.id).join(',');
+  if (root._sig === sig) return; root._sig = sig;
+  root.innerHTML = S.toasts.map(t =>
+    '<div class="toast' + (t.attn ? ' attn' : '') + '" role="status">' + (t.by ? avatar(t.by) : icon(t.attn ? 'alert' : 'check', 'sm')) + '<span class="tt">' + esc(t.title) + '</span>' +
+    '<button class="ibtn" data-act="toast-close" data-id="' + t.id + '" aria-label="Dismiss" style="width:22px;height:22px">' + icon('x', 'xs') + '</button>' +
+    (t.body ? '<span class="tb">' + esc(t.body) + '</span>' : '') +
+    (t.thread ? '<span class="tb"><button class="btn sm" data-act="thread" data-id="' + t.thread + '">Open thread</button></span>' : '') + '</div>').join('');
+}
+
+/* ---------- Sending and agent replies ---------- */
+function post(tid, m, story) { const th = S.threads[tid]; m.time = m.time || clockStr(); if (story) m.story = true; th.msgs.push(m); return m; }
+
+function sendMessage(text) {
+  text = text.trim(); if (!text) return;
+  const tid = S.thread; const th = S.threads[tid];
+  post(tid, { by: S.me, text });
+  const t = th.taskId && S.tasks[th.taskId];
+  if (t && t.id === 'k-annual' && t.phase === 'needs') { answerQuestion(S.me, text); return; }
+  const cs = S.chan[th.channel]; const agent = cs.agent === 'alfred' ? 'alfred' : 'assistant';
+  const model = Object.assign({}, th.model);
+  S.typing = { thread: tid, by: agent, model: model.id };
+  later(() => {
+    S.typing = null;
+    post(tid, { by: agent, text: replyFor(tid, text, model), model: { provider: model.provider, id: model.id } });
+    S.clock += 1; render();
+  }, 1300);
+}
+
+function replyFor(tid, userText, model) {
+  const th = S.threads[tid];
+  const agentMsgs = th.msgs.filter(m => m.model && m.by !== S.me);
+  const lastAgent = agentMsgs[agentMsgs.length - 1];
+  const switched = lastAgent && lastAgent.model.provider !== model.provider;
+  const prevLbl = lastAgent ? modelLabel(lastAgent.model) : '';
+  const me = person(S.me).name;
+  const humans = [...new Set(th.msgs.filter(m => m.by && person(m.by).kind === 'human').map(m => m.by))];
+  const others = humans.filter(h => h !== S.me).map(h => person(h).name);
+  const n = (th.replyN = (th.replyN || 0) + 1);
+  const lead = switched ? 'I\'m on ' + model.id + ' now and I have the whole thread, including the earlier ' + prevLbl + ' answer. ' : '';
+  if (tid === 't-annual') {
+    const t = S.tasks['k-annual'];
+    if (t && t.phase === 'done') return lead + 'The annual plan shipped in PR #42 at $' + S.story.price + '. ' + me + ', if you want a follow-up, the billing page still shows only monthly. I can draft that task.';
+    if (switched) return lead + 'As Kai said above, Stripe already has annual prices on our account. Masha\'s day-12 case is the one to test: 18 unused days at $9 a month is a credit of about $5.40, and Emil\'s rule says credit, never refund. The one open item is still Kai\'s price, $96 or $108.';
+    if (n === 1) return 'As Kai said above, Stripe already has annual prices on our account, so the picker needs a second price and a toggle. I\'d use Emil\'s rule as the acceptance test: moving to annual on day 12 credits 18 days, no refund. Kai is still checking the price with finance. ' + me + ', want me to write this up so you can hand it to Alfred?';
+    return 'Going by the thread: Kai wants the yearly plan, Masha found the mid-cycle case, and Emil set the rule (credit, no refund). Nothing else blocks it except the price. Hand it to Alfred when you\'re ready and he\'ll ask Kai for the number.';
+  }
+  const first = th.msgs.find(m => m.by);
+  const q = userText.length > 90 ? userText.slice(0, 87) + '…' : userText;
+  return lead + 'Going by the thread so far: ' + person(first.by).name + ' started with "' + first.text.replace(/`/g, '').slice(0, 80) + (first.text.length > 80 ? '…' : '') + '"' +
+    (others.length ? ', and ' + others.slice(0, 2).join(' and ') + ' weighed in' : '') + '. On your question, "' + q + '": I\'d keep the change small and add a test that reproduces it first. ' +
+    (th.taskId ? 'This thread already has a task, so I\'ll leave the work to Alfred.' : 'If the team agrees, hand it to Alfred.');
+}
+
+/* ---------- Hand to Alfred, confirm, merge ---------- */
+function handToAlfred(tid, by) {
+  const th = S.threads[tid]; if (th.taskId) return;
+  const pid = projectOfThread(tid); const proj = projectById(pid);
+  let t;
+  if (tid === 't-annual') {
+    t = taskBase({ id: 'k-annual', project: 'web', thread: tid, title: 'Annual plan at checkout', phase: 'draft', assignedBy: by,
+      what: 'Offer a yearly plan next to monthly in the checkout plan picker. People who switch from monthly get the unused days credited, never refunded.',
+      criteria: [{ t: 'Checkout offers Monthly ($9) and Annual' }, { t: 'Switching mid-cycle credits the unused days, no refund' }, { t: 'A retried Stripe webhook never credits twice' }, { t: 'Annual price confirmed by Kai' }],
+      steps: ['Reproduce current checkout', 'Annual option in plan picker', 'Credit the unused days', 'Open PR for review', 'Fix review finding', 'Set the annual price', 'Final checks'].map(l => ({ l, s: 'todo' })) });
+    S.story.pos = 0;
+  } else {
+    const first = th.msgs.find(m => m.by);
+    t = taskBase({ id: 'k-' + tid + '-' + S.seq++, project: pid, thread: tid, title: th.title, phase: 'draft', assignedBy: by, repos: [proj.repos[0]],
+      what: first.text.replace(/`/g, ''), criteria: [{ t: 'The outcome agreed in this thread works end to end' }, { t: 'A test reproduces the problem first' }] });
+  }
+  S.tasks[t.id] = t; th.taskId = t.id;
+  const approvers = Object.keys(proj.roles).filter(k => proj.roles[k] === 'Approver');
+  post(tid, { by: 'alfred', model: OPUS, text: 'I wrote up the task from this thread. @' + person(approvers[0]).name + ', you\'re the Approver in ' + proj.name + '. Confirm it and I\'ll start.' }, true);
+  post(tid, { kind: 'task', id: t.id }, true);
+}
+
+/* The role check stands in for the server's check (decision 7); `by` is the acting identity. */
+function confirmTask(id, by) {
+  const t = S.tasks[id]; if (!t || t.phase !== 'draft' || !canApprove(t.project, by)) return;
+  t.confirmedBy = by;
+  t.timeline.push([clockStr(), person(by).name + ' confirmed the task (role checked: Approver)', '']);
+  if (id === 'k-annual') { schedule(600); return; }
+  t.phase = 'queued'; t.queuePos = 3; t.timeline.push([clockStr(), 'Queued behind 2 tasks', '']);
+  post(t.thread, { by: 'alfred', model: OPUS, text: 'Confirmed by ' + person(by).name + '. It\'s third in the queue; I\'ll post here when an executor picks it up.' }, true);
+}
+
+function mergeTask(id, by) {
+  const t = S.tasks[id]; if (!t || t.phase !== 'ready' || !canApprove(t.project, by)) return;
+  if (id === 'k-annual') { S.story.mergedBy = by; cancel(S.runTimer); stepOnce(); afterStep(); return; }
+  t.phase = 'done'; t.doneAt = clockStr(); t.doneNew = true; t.doneReadBy = [];
+  t.timeline.push([clockStr(), person(by).name + ' merged PR #' + t.pr, 'h']);
+  post(t.thread, { by: 'alfred', model: OPUS, text: 'Merged PR #' + t.pr + ' into main as `' + t.sha + '`. ' + person(by).name + ' merged it; the Ready to merge alert is cleared.' });
+  toast({ title: 'Merged PR #' + t.pr, body: t.title + ' is done. The Ready to merge alert cleared.' });
+}
+
+const KAI_ANSWER = '$96. Two months free reads better on the pricing page, and finance is fine with it.';
+function recordAnswer(by, text) { S.story.answerBy = by; S.story.price = /108/.test(text) ? 108 : 96; }
+function kaiAnswers() { post('t-annual', { by: 'kai', text: KAI_ANSWER }, true); recordAnswer('kai', KAI_ANSWER); }
+function answerQuestion(by, text) {
+  recordAnswer(by, text);
+  toast({ title: 'Needs you · cleared', body: person(by).name + ' answered in the thread, so the Inbox alert for Kai and Emil cleared itself.' });
+  schedule(900);
+}
+
+/* ---------- The scripted run of the annual plan task ---------- */
+function T() { return S.tasks['k-annual']; }
+function stepAt(i, s, time) { const st = T().steps[i]; st.s = s; if (time) st.t = time; return st; }
+function tick(min) { S.clock += min; T().elapsed += min; }
+/* A gated step waits for people; `auto` is how the tour satisfies the gate when it rebuilds the story. */
+const gated = (wait, auto, run) => Object.assign(run, { wait, auto });
+const STORY = [
+  gated(() => !!T().confirmedBy, () => confirmTask('k-annual', 'emil'), () => { const t = T(); t.phase = 'design'; tick(1); t.timeline.push([clockStr(), 'Alfred sent the plan to the design gate', 'h']); }),
+  () => { const t = T(); tick(1); t.design = 'Keep the proration math in plans.ts so checkout and the billing page share one rule.';
+    t.phase = 'executing'; t.handoffs.push({ f: 'alfred', to: 'executor', w: 'Task, 4 acceptance criteria, design note', time: clockStr() });
+    t.timeline.push([clockStr(), 'Design gate: Design OK, 1 note', ''], [clockStr(), 'Alfred handed the task to Executor (Claude Code · claude-opus-5-5)', 'h']);
+    stepAt(0, 'run', 'running');
+    post('t-annual', { by: 'alfred', model: OPUS, text: 'Confirmed by ' + person(t.confirmedBy).name + '. The design gate passed the plan with one note, and Executor has started. I\'ll ask here if something needs a decision.' }, true); },
+  () => { tick(1); stepAt(0, 'done', '1m 10s'); stepAt(1, 'run', 'running'); },
+  () => { tick(4); const s = stepAt(1, 'done', '3m 40s'); s.diff = [['plan-picker.tsx', 42, 8], ['plans.ts', 12, 3]]; stepAt(2, 'run', 'running'); },
+  () => { tick(4); const s = stepAt(2, 'done', '4m 05s'); s.diff = [['proration.ts', 64, 0], ['proration.test.ts', 88, 0]]; stepAt(3, 'run', 'running'); },
+  () => { const t = T(); tick(2); stepAt(3, 'done', '1m 20s'); t.pr = 42; t.sha = '9c1d7e0'; t.phase = 'review';
+    t.evidence.push({ k: 'Tests', sha: '9c1d7e0', v: 'pass', d: '214 passed, no new failures vs base 81f0c3a', by: 'runner' });
+    t.handoffs.push({ f: 'executor', to: 'reviewer', w: 'PR #42 and the test report on 9c1d7e0', time: clockStr() });
+    t.timeline.push([clockStr(), 'Executor opened PR #42 and handed it to Reviewer (Codex · gpt-6.2-sol)', 'h']);
+    t.agentLog.push(['executor', clockStr(), 'PR #42 is up. Annual option in plan-picker.tsx, proration in plans.ts and proration.ts per the design note. Tests pass on 9c1d7e0 (runner).']); },
+  () => { const t = T(); tick(3); t.phase = 'fixing';
+    t.evidence.push({ k: 'Review', sha: '9c1d7e0', v: 'changes', d: '1 finding (cause: no-write-order)', by: 'agent' });
+    t.handoffs.push({ f: 'reviewer', to: 'executor', w: '1 remark: credit applied before the plan switch is saved (cause: no-write-order)', time: clockStr() });
+    t.timeline.push([clockStr(), 'Reviewer returned 1 finding to Executor', 'h']);
+    t.agentLog.push(['reviewer', clockStr(), 'Finding 1 (should fix): applyAnnualCredit() runs before saveSubscriptionSwitch(). If Stripe retries the webhook, the credit is applied twice. Save the switch first, then credit in the same transaction. cause: no-write-order']);
+    stepAt(4, 'run', 'running'); },
+  () => { const t = T(); tick(3); const s = stepAt(4, 'done', '2m 30s'); s.diff = [['proration.ts', 9, 6], ['webhook.test.ts', 41, 0]]; t.sha = '7be20a4'; t.phase = 'executing';
+    t.ctx = 'Executor session reached 250k tokens → state saved (work in progress, decisions, dead ends, next step) → fresh session continued from the task card. No one had to step in.';
+    t.timeline.push([clockStr(), 'Executor session reached 250k tokens → state saved → fresh session continued', 'c']);
+    t.agentLog.push(['executor', clockStr(), 'Agreed. The switch is saved first and the credit runs in the same transaction. Added a test that replays the webhook twice and expects one credit. 7be20a4.'],
+      ['reviewer', clockStr(), 'Checked 7be20a4. Fixed. No new findings.']);
+    t.evidence.push({ k: 'Review', sha: '7be20a4', v: 'pass', d: 'Finding fixed, no new findings', by: 'agent' });
+    t.criteria[0].ok = true; t.criteria[1].ok = true; t.criteria[2].ok = true;
+    stepAt(5, 'wait', 'needs a price'); },
+  () => { const t = T(); tick(1); t.phase = 'needs'; t.ask = { to: ['kai'], text: '$96 or $108 a year?', at: clockStr() };
+    t.timeline.push([clockStr(), 'Alfred asked Kai in the thread. Inbox: Needs you to Kai and Emil', '']);
+    post('t-annual', { by: 'alfred', model: OPUS, text: '@Kai, Executor needs the price before the last step: $96 a year (two months free) or $108 (one month free)? Monthly stays $9. Emil\'s credit rule works with either.' }, true);
+    toast({ attn: true, by: 'alfred', title: 'Needs you · Kai, $96 or $108 a year?', body: 'Alfred asked in #billing. Sent to the Inbox of Kai and Emil.', thread: 't-annual', ms: 7000 }); },
+  gated(() => !!S.story.answerBy, kaiAnswers, () => { const t = T(); tick(1); t.phase = 'executing'; t.ask = null;
+    t.criteria[3].ok = true; t.criteria[0].t = 'Checkout offers Monthly ($9) and Annual ($' + S.story.price + ')';
+    t.timeline.push([clockStr(), person(S.story.answerBy).name + ' answered: $' + S.story.price + '. Needs you cleared', '']);
+    const s = stepAt(5, 'done', '0m 40s'); s.diff = [['plans.ts', 1, 1]]; t.sha = '3245de5'; stepAt(6, 'run', 'running');
+    post('t-annual', { by: 'alfred', model: OPUS, text: 'Thanks, ' + person(S.story.answerBy).name + '. $' + S.story.price + ' a year it is. Executor has set the price and is running the final checks.' }, true); }),
+  () => { const t = T(); tick(3); t.phase = 'review';
+    t.evidence.push({ k: 'Tests', sha: '3245de5', v: 'pass', d: '216 passed, no new failures vs base 81f0c3a', by: 'runner' }, { k: 'Review', sha: '3245de5', v: 'pass', d: 'Price change re-reviewed, clean', by: 'agent' });
+    t.agentLog.push(['reviewer', clockStr(), 'Re-reviewed 3245de5 (price change only). Clean.']);
+    t.timeline.push([clockStr(), 'Tests and review pass on 3245de5', '']); },
+  () => { const t = T(); tick(2); t.phase = 'ready'; t.readyAt = clockStr(); stepAt(6, 'done', '4m 10s');
+    t.evidence.push({ k: 'Second review', sha: '3245de5', v: 'pass', d: 'Blind pass by a second reviewer, no findings', by: 'agent' });
+    t.agentLog.push(['reviewer2', clockStr(), 'Blind pass on 3245de5 without the main review\'s notes. No findings.']);
+    t.timeline.push([clockStr(), 'Ready to merge. Inbox: Ready to merge to Emil', '']);
+    post('t-annual', { by: 'alfred', model: OPUS, text: 'PR #42 is ready to merge. Tests pass on `3245de5` with no new failures against base `81f0c3a`, and both reviews are clean. @Emil, it\'s yours to merge.' }, true);
+    toast({ by: 'alfred', title: 'Ready to merge · PR #42', body: 'Annual plan at checkout. Evidence is bound to 3245de5.', thread: 't-annual' }); },
+  gated(() => !!S.story.mergedBy, () => { S.story.mergedBy = 'emil'; }, () => { const t = T(); tick(1); t.phase = 'done'; t.doneAt = clockStr(); t.doneNew = true; t.doneReadBy = [];
+    t.timeline.push([clockStr(), person(S.story.mergedBy).name + ' merged PR #42. Ready to merge cleared', 'h']);
+    post('t-annual', { by: 'alfred', model: OPUS, text: 'Merged PR #42 into main as `3245de5`. Checkout now offers Annual at $' + S.story.price + ' next to Monthly at $9, and switching mid-cycle credits the unused days. Staging deploy finished at ' + clockStr(2) + '. Thanks, Kai, Masha and Emil.' }, true);
+    toast({ title: 'Task done · Annual plan at checkout', body: 'Merged as 3245de5. The Ready to merge alert cleared.' }); })
+];
+
+function canStep() {
+  const p = S.story.pos; if (p < 0 || p >= STORY.length || !T()) return false;
+  return !STORY[p].wait || STORY[p].wait();
+}
+function stepOnce() { if (!canStep()) return false; STORY[S.story.pos](); S.story.pos++; return true; }
+function schedule(ms) {
+  cancel(S.runTimer); S.runTimer = null;
+  if (!canStep()) return;
+  S.runTimer = later(() => { S.runTimer = null; if (stepOnce()) { afterStep(); schedule(); } }, ms || (S.tour && S.tour.mode === 'story' ? 1500 : 1900));
+}
+function afterStep() { render(); if (S.tour && S.tour.mode === 'story') storyNarrate(); }
+function fastForward() { cancel(S.runTimer); while (stepOnce()) { /* run to the next point that needs people */ } afterStep(); }
+
+function resetStory() {
+  cancel(S.runTimer); S.runTimer = null;
+  const th = S.threads['t-annual']; th.msgs = th.msgs.filter(m => !m.story); th.taskId = null;
+  delete S.tasks['k-annual'];
+  S.story = freshStory();
+  S.clock = 0; if (S.drawer === 'k-annual') S.drawer = null;
+}
+/* Rebuild the annual task at a given script position without timers (used by the tour). */
+function storyTo(pos) {
+  resetStory(); if (pos < 0) return;
+  S.silent = true;
+  handToAlfred('t-annual', 'emil');
+  while (S.story.pos < pos) {
+    const st = STORY[S.story.pos]; if (st.wait && !st.wait()) st.auto();
+    if (!stepOnce()) break;
+  }
+  cancel(S.runTimer); S.runTimer = null; S.silent = false;
+}
+
+/* ---------- Model picker ---------- */
+function openPicker() {
+  const th = S.threads[S.thread];
+  S.picker = { open: true, prov: th.model.provider, q: '', sel: 0 };
+  if (!S.detecting) {
+    S.detecting = true;
+    for (const p of PROVIDERS) later(() => { S.loaded[p.id] = true; if (S.picker.open) renderPicker(true); }, p.delay);
+  }
+  renderPicker(); updateComposerBits();
+  const inp = document.getElementById('model-search'); if (inp && !isNarrow()) inp.focus();
+}
+function closePicker(focusBtn) {
+  S.picker.open = false; document.getElementById('picker-root').innerHTML = ''; updateComposerBits();
+  if (focusBtn) { const b = document.getElementById('model-btn'); if (b) b.focus(); }
+}
+function pickerModels() {
+  const q = S.picker.q.trim().toLowerCase();
+  const provs = q ? PROVIDERS : [providerOf(S.picker.prov)];
+  const items = []; const loading = [];
+  for (const p of provs) {
+    if (!S.loaded[p.id]) { loading.push(p); continue; }
+    for (const m of p.models) if (!q || (m.name + ' ' + m.id + ' ' + p.name).toLowerCase().includes(q)) items.push({ p, m });
+  }
+  return { items, loading };
+}
+function renderPickerModels() {
+  const box = document.getElementById('pk-models'); if (!box) return;
+  const cur = S.threads[S.thread].model; const { items, loading } = pickerModels();
+  if (S.picker.sel >= items.length) S.picker.sel = Math.max(0, items.length - 1);
+  let h = items.map(({ p, m }, i) => '<button role="option" data-act="pk-model" data-p="' + p.id + '" data-id="' + m.id + '" aria-selected="' + (i === S.picker.sel) + '">' +
+    icon(p.ic, 'prov-ic ' + p.id) + '<span class="mn">' + esc(m.name) + (cur.provider === p.id && cur.id === m.id ? ' ' + icon('check', 'xs ck') : '') + '<span class="mid">' + esc(m.id) + (S.picker.q ? ' · ' + p.name : '') + '</span></span>' +
+    (i < 6 ? '<span class="kbd">⌘' + (i + 1) + '</span>' : '') + '</button>').join('');
+  for (const p of loading) h += '<div class="pk-load"><span class="spin"></span>Asking ' + esc(p.name) + ' for its models…</div>' + (S.picker.q ? '' : '<div class="skel"></div><div class="skel"></div><div class="skel"></div>');
+  if (!items.length && !loading.length) h = '<div class="pk-empty">No model matches "' + esc(S.picker.q) + '".</div>';
+  box.innerHTML = h;
+}
+function renderPicker(partial) {
+  const root = document.getElementById('picker-root'); if (!S.picker.open) { root.innerHTML = ''; return; }
+  const cur = S.threads[S.thread].model;
+  const provHtml = PROVIDERS.map(p => '<button data-act="pk-prov" data-id="' + p.id + '" aria-pressed="' + (S.picker.prov === p.id) + '">' + icon(p.ic, 'prov-ic ' + p.id) + '<span class="pn">' + esc(p.name) + '</span>' +
+    '<span class="pd"><i class="' + (S.loaded[p.id] ? '' : 'wait') + '"></i>' + (S.loaded[p.id] ? 'detected on this host' : 'detecting…') + '</span></button>').join('');
+  if (partial && root.firstChild) { root.querySelector('.pk-prov').innerHTML = provHtml; renderPickerModels(); if (S.tour) tourPlace(); return; }
+  root.innerHTML = '<div class="picker" id="model-picker" role="dialog" aria-label="Choose a model for this thread">' +
+    '<div class="pk-prov" aria-label="Providers">' + provHtml + '</div>' +
+    '<div class="pk-list"><div class="pk-search">' + icon('search', 'sm') + '<label class="sr" for="model-search">Search models</label><input id="model-search" placeholder="Search models…" autocomplete="off" value="' + esc(S.picker.q) + '"></div><div class="pk-models" id="pk-models" role="listbox" aria-label="Models"></div></div>' +
+    '<div class="pk-reason"><div class="rh">Reasoning</div>' + REASONING.map(r => '<button data-act="pk-reason" data-v="' + r + '" aria-pressed="' + (cur.reasoning === r) + '"><span>' + r + '</span>' + (cur.reasoning === r ? icon('check', 'xs') : (r === 'Medium' ? '<span class="def">Default</span>' : '')) + '</button>').join('') + '</div>' +
+    '<div class="pk-foot"><span>Saved for this thread. The next answer gets the whole thread.</span><span>Esc to close</span></div></div>';
+  renderPickerModels(); positionPicker();
+}
+function positionPicker() {
+  const p = document.getElementById('model-picker'); const b = document.getElementById('model-btn'); if (!p || !b) return;
+  if (isNarrow()) { p.style.left = ''; p.style.top = ''; p.style.bottom = ''; return; }
+  const r = b.getBoundingClientRect(); const w = p.offsetWidth;
+  p.style.left = Math.max(16, Math.min(r.right - w, window.innerWidth - w - 16)) + 'px';
+  p.style.bottom = (window.innerHeight - r.top + 8) + 'px'; p.style.top = 'auto';
+}
+function chooseModel(pid, mid) {
+  const th = S.threads[S.thread]; th.model = { provider: pid, id: mid, reasoning: th.model.reasoning };
+  closePicker(true); toast({ title: 'Model for this thread: ' + modelOf(pid, mid).name, body: providerOf(pid).name + ' answers next, with the whole thread so far.', ms: 3000 });
+}
+
+/* ---------- Channel settings dialog (custom selects) ---------- */
+function openChanSettings() {
+  const cs = S.chan[S.channel];
+  S.dialog = { type: 'chan', chan: S.channel, agent: cs.agent, role: cs.role, skills: cs.skills.slice(), open: null, skillsOpen: false };
+  renderDialog(); const b = document.getElementById('sel-agent'); if (b) b.focus();
+}
+function selHtml(key, value, opts, disabled) {
+  const d = S.dialog; const open = d.open === key;
+  return '<div class="sel"><button type="button" class="sel-btn" id="sel-' + key + '" data-act="sel-toggle" data-sel="' + key + '" aria-haspopup="listbox" aria-expanded="' + open + '" aria-labelledby="lbl-' + key + ' sel-' + key + '"' + (disabled ? ' disabled' : '') + '><span class="lbl">' + esc(value) + '</span>' + icon('chevDown', 'xs') + '</button>' +
+    (open ? '<div class="sel-list" role="listbox" aria-labelledby="lbl-' + key + '">' + opts.map(o => '<button type="button" role="option" data-act="sel-opt" data-sel="' + key + '" data-v="' + esc(o.id) + '" aria-selected="' + (o.cur) + '">' + (o.cur ? icon('check', 'xs') : '<span style="width:12px"></span>') + esc(o.label) + (o.d ? '<span class="od">' + esc(o.d) + '</span>' : '') + '</button>').join('') + '</div>' : '') + '</div>';
+}
+function renderDialog() {
+  const root = document.getElementById('dialog-root');
+  if (S.palette) { renderPalette(); return; }
+  if (!S.dialog) { root.innerHTML = ''; return; }
+  const d = S.dialog; const c = chanById(d.chan);
+  const agentLbl = AGENT_OPTIONS.find(o => o.id === d.agent).label;
+  const n = d.skills.length;
+  root.innerHTML = '<div class="overlay" data-act="dlg-scrim"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlg-title" id="dlg-channel">' +
+    '<div><h3 id="dlg-title">Settings for #' + esc(c.name) + '</h3><p class="desc">Who answers new messages here by default, and the skills it uses. Agents can still be called into any single thread.</p></div>' +
+    '<div class="field"><span class="flabel" id="lbl-agent">Agent in channel</span>' + selHtml('agent', agentLbl, AGENT_OPTIONS.map(o => ({ id: o.id, label: o.label, d: o.d, cur: o.id === d.agent }))) + '</div>' +
+    '<div class="field"><span class="flabel" id="lbl-role">Role <span class="req">' + (d.agent === 'none' ? 'needs an agent' : 'required') + '</span></span>' + selHtml('role', d.role || 'Pick an agent first', ROLE_OPTIONS.map(r => ({ id: r, label: r, cur: r === d.role })), d.agent === 'none') + '</div>' +
+    '<details class="skills" id="skills-box"' + (d.skillsOpen ? ' open' : '') + '><summary>' + icon('chevRight', 'xs chev') + (n ? 'Channel skills · ' + n : 'Attach a skill') + '</summary>' +
+    SKILLS.map(s => '<div class="sk"><input type="checkbox" id="skill-' + s.id + '" data-skill="' + s.id + '"' + (d.skills.includes(s.id) ? ' checked' : '') + '><label for="skill-' + s.id + '">' + s.id + '</label><span class="sd">' + esc(s.desc) + '</span></div>').join('') + '</details>' +
+    '<div class="dlg-acts"><button class="btn ghost" data-act="dlg-cancel">Cancel</button><button class="btn primary" data-act="dlg-save">Save</button></div></div></div>';
+  root.querySelector('#skills-box').addEventListener('toggle', e => { S.dialog && (S.dialog.skillsOpen = e.target.open); });
+}
+function saveChanSettings() {
+  const d = S.dialog; S.chan[d.chan] = { agent: d.agent, role: d.agent === 'none' ? '' : d.role, skills: d.skills.slice() };
+  const c = chanById(d.chan); S.dialog = null; renderDialog(); render();
+  toast({ title: 'Saved settings for #' + c.name, body: d.agent === 'none' ? 'No default agent. People only, unless someone calls an agent into a thread.' : person(d.agent).name + ' · ' + d.role + (d.skills.length ? ' · skills: ' + d.skills.join(', ') : ''), ms: 3500 });
+  const b = document.getElementById('chan-settings-btn'); if (b) b.focus();
+}
+
+/* ---------- Command palette ---------- */
+function paletteItems() {
+  const q = (S.palette.q || '').toLowerCase(); const out = [];
+  for (const p of PROJECTS) { out.push({ k: 'Tasks', label: 'Tasks · ' + p.name, run: () => showTasks(p.id) }); for (const c of p.channels) out.push({ k: p.name, label: '#' + c.name, run: () => openChannel(c.id) }); }
+  for (const id of Object.keys(S.threads)) { const th = S.threads[id]; const c = chanById(th.channel); out.push({ k: '#' + c.name, label: th.title, run: () => openThread(id) }); }
+  out.push({ k: 'View', label: 'Inbox', run: () => { S.mid = 'inbox'; S.mtab = 'mid'; } });
+  return out.filter(i => !q || (i.label + ' ' + i.k).toLowerCase().includes(q)).slice(0, 12);
+}
+function openPalette() { S.palette = { q: '', sel: 0 }; renderPalette(); document.getElementById('pal-input').focus(); }
+function renderPalette() {
+  const root = document.getElementById('dialog-root');
+  root.innerHTML = '<div class="overlay" data-act="pal-scrim"><div class="palette" role="dialog" aria-label="Go to or search"><div class="pk-search">' + icon('search', 'sm') + '<label class="sr" for="pal-input">Go to or search</label><input id="pal-input" placeholder="Go to a thread, channel or task list…" autocomplete="off"></div><ul id="pal-list"></ul></div></div>';
+  renderPaletteList();
+}
+function renderPaletteList() {
+  const items = paletteItems(); S.palette.items = items;
+  document.getElementById('pal-list').innerHTML = items.map((it, i) => '<li><button data-act="pal-item" data-i="' + i + '" aria-selected="' + (i === S.palette.sel) + '">' + esc(it.label) + '<span class="k">' + esc(it.k) + '</span></button></li>').join('') || '<li class="pk-empty">Nothing found</li>';
+}
+function closePalette() { S.palette = null; document.getElementById('dialog-root').innerHTML = ''; if (S.dialog) renderDialog(); }
+
+/* ---------- First-load offer ---------- */
+function renderOffer() {
+  const root = document.getElementById('offer-root');
+  if (!S.offer || S.tour) { root.innerHTML = ''; return; }
+  if (root.firstChild) return;
+  root.innerHTML = '<div class="offer" role="dialog" aria-labelledby="offer-title"><h3 id="offer-title">Take a 2-minute tour of Factory?</h3><p>See how a thread becomes a task, how Alfred runs the executor and reviewer, and where people step in.</p>' +
+    '<div class="acts"><button class="btn primary sm" data-act="tour">' + icon('compass', 'xs') + 'Start the tour</button><button class="btn sm" data-act="story">' + icon('play', 'xs') + 'Play the story</button><button class="btn ghost sm" data-act="offer-dismiss">Not now</button></div></div>';
+}
+/* ---------- Guided tour ---------- */
+function baseView(extra) {
+  resetStory();
+  S.max = null; S.cols = { left: true, mid: true, right: true }; S.me = 'emil';
+  S.project = 'web'; S.channel = 'w-billing'; S.mid = 'feed'; S.thread = 't-annual';
+  Object.assign(S, extra || {});
+}
+const TOUR = [
+  { t: 'Projects and channels', b: 'Each project is a room around one business area and can span several repositories. The open project shows its Tasks, with a count of tasks waiting on people, and its channels.',
+    target: '#left-projects', prep: () => baseView({ mtab: 'left' }) },
+  { t: 'A switcher only when it helps', b: 'Web Shop has two channels, so the feed shows a channel switcher. Mobile App has only #general and shows none.',
+    target: '#chan-switcher', prep: () => baseView({ mtab: 'mid' }) },
+  { t: 'Hide, maximize, restore', b: 'Any column can be hidden or maximized and then restored. The buttons sit in each column header and in the top-left toggles.',
+    bNarrow: 'On a phone you see one column at a time. Switch between them with the tabs at the bottom.',
+    target: '#top-toggles', targetNarrow: '#mtabs', prep: () => baseView({ mtab: 'mid' }) },
+  { t: 'Channel settings', b: 'A channel can have a default agent and a role, for example Alfred as Chief of staff. Skills stay folded under "Attach a skill" until someone needs them.',
+    target: '#dlg-channel', prep: () => baseView({ mtab: 'mid' }), after: () => { openChanSettings(); S.dialog.skillsOpen = true; renderDialog(); } },
+  { t: 'Pick a model, switch it mid-thread', b: 'The model button sits next to Send: providers on the left, search in the middle, reasoning on the right. Codex models arrive a second later because each provider answers on its own. Switch mid-thread and the next answer still reads the whole thread; each thread remembers its model.',
+    target: '#model-picker', prep: () => baseView({ mtab: 'right' }), after: () => openPicker() },
+  { t: 'Everyone writes as themselves', b: 'Each person signs in with their own identity, and agents get every message with its author\'s name. Switch to Masha: her messages move to the right and she can no longer confirm tasks.',
+    target: '#id-switch', prep: () => baseView({ mtab: 'right' }) },
+  { t: 'Hand to Alfred', b: 'Hand to Alfred puts a task card into the thread: what to do, acceptance criteria, who assigned it, repositories. Only someone with the Approver role in the project can confirm it, and the server checks that role.',
+    target: '#card-k-annual', prep: () => { baseView({ mtab: 'right' }); storyTo(0); } },
+  { t: 'The card while agents work', b: 'Alfred runs an executor and a reviewer in their own sessions. The card shows first what each agent handed to the next, then the steps, times and changed files.',
+    target: '#handoffs-k-annual', prep: () => { baseView({ mtab: 'right' }); storyTo(8); } },
+  { t: 'Open agent work', b: 'The executor and reviewer talk here, away from the team\'s conversation. Evidence per commit and the automatic context handoff at 250k tokens are here too.',
+    target: '#agent-drawer', prep: () => { baseView({ mtab: 'right' }); storyTo(8); S.drawer = 'k-annual'; } },
+  { t: 'Needs you, through the Inbox', b: 'When a decision is needed, Alfred asks in the thread. The question goes to the Inbox of Kai and Emil and clears itself once someone answers.',
+    target: '#inbox-needs-k-annual', prep: () => { baseView({ mtab: 'mid', mid: 'inbox' }); storyTo(9); } },
+  { t: 'Evidence, then Merge', b: 'Before merging, the card shows what was checked and on which commit: tests with no new failures against base, the review and a blind second review, all on 3245de5. Merge is open to people with merge rights.',
+    target: '#evidence-k-annual', prep: () => { baseView({ mtab: 'right' }); storyTo(12); } },
+  { t: 'Tasks: List and Board', b: 'Tasks indexes every task in the project. List is the default; maximize the middle column for the Board. Nobody drags cards: agents move them, and each card offers the one action it needs.',
+    target: '#col-mid', prep: () => baseView({ mtab: 'mid', mid: 'tasks', tasksView: 'list' }) }
+];
+
+function closeOverlays() { if (S.picker.open) closePicker(); S.dialog = null; S.palette = null; S.drawer = null; renderDialog(); }
+function startTour(i) {
+  endTour(); S.offer = false; renderOffer();
+  S.tour = { mode: 'tour', i: i || 0 }; tourGo(S.tour.i);
+}
+function tourGo(i) {
+  if (!S.tour) return;
+  S.tour.i = Math.max(0, Math.min(TOUR.length - 1, i));
+  closeOverlays();
+  const st = TOUR[S.tour.i]; st.prep(); render(); if (st.after) st.after();
+  tourRender(); revealTarget();
+}
+function tourTarget() {
+  if (!S.tour) return null;
+  if (S.tour.mode === 'story') { const t = T(); return t ? (t.phase === 'ready' || t.phase === 'done' ? '#evidence-k-annual' : '#card-k-annual') : '#thread-msgs'; }
+  const st = TOUR[S.tour.i]; return isNarrow() && st.targetNarrow ? st.targetNarrow : st.target;
+}
+function revealTarget() {
+  const el = document.querySelector(tourTarget());
+  if (el) { const sc = el.closest('.col-body'); if (sc && !el.closest('.drawer')) el.scrollIntoView({ block: el.offsetHeight > sc.clientHeight ? 'start' : 'nearest' }); }
+  requestAnimationFrame(tourPlace);
+}
+function tourRender() {
+  const root = document.getElementById('tour-root');
+  if (!S.tour) { root.innerHTML = ''; return; }
+  const story = S.tour.mode === 'story';
+  let title, body, nav;
+  if (story) {
+    title = S.tour.title || 'Play the story'; body = S.tour.text || '';
+    nav = '<div class="tnav"><span class="tcount">Playing automatically</span><span class="grow"></span>' + (S.tour.finished ? '<button class="btn primary sm" data-act="tour-skip">Close</button>' : '<button class="btn sm" data-act="tour-skip">Stop</button>') + '</div>';
+  } else {
+    const st = TOUR[S.tour.i]; const n = TOUR.length; title = st.t; body = isNarrow() && st.bNarrow ? st.bNarrow : st.b;
+    nav = '<div class="tdots" aria-hidden="true">' + TOUR.map((_, k) => '<i class="' + (k === S.tour.i ? 'on' : '') + '"></i>').join('') + '</div>' +
+      '<div class="tnav"><button class="btn ghost sm" data-act="tour-skip">Skip</button><span class="grow"></span><span class="tcount tnum">' + (S.tour.i + 1) + ' / ' + n + '</span>' +
+      '<button class="btn sm" data-act="tour-back"' + (S.tour.i === 0 ? ' disabled' : '') + '>Back</button><button class="btn primary sm" data-act="tour-next" id="tour-next">' + (S.tour.i === n - 1 ? 'Done' : 'Next') + '</button></div>';
+  }
+  const dims = ['t', 'b', 'l', 'r'].map(k => '<div class="dim' + (story ? ' story' : '') + '" data-dim="' + k + '"></div>').join('');
+  root.innerHTML = (story ? '' : '<div class="tour-block"></div>') + dims + '<div class="spot" id="tour-spot"></div>' +
+    '<div class="tpop" id="tour-pop" role="dialog" aria-live="polite" aria-labelledby="tour-title"><h3 id="tour-title">' + esc(title) + '</h3><p>' + esc(body) + '</p>' + nav + '</div>';
+  const nb = document.getElementById('tour-next'); if (nb) nb.focus({ preventScroll: true });
+}
+function tourPlace() {
+  if (!S.tour) return;
+  const spot = document.getElementById('tour-spot'); const pop = document.getElementById('tour-pop'); if (!spot || !pop) return;
+  const el = document.querySelector(tourTarget());
+  const vw = window.innerWidth, vh = window.innerHeight, pw = pop.offsetWidth, ph = pop.offsetHeight, g = 14;
+  let r = el ? el.getBoundingClientRect() : null;
+  if (r) { const top = Math.max(r.top, 4), bottom = Math.min(r.bottom, vh - 4), left = Math.max(r.left, 4), right = Math.min(r.right, vw - 4); r = { top, bottom, left, right, width: right - left, height: bottom - top }; }
+  const dim = k => document.querySelector('#tour-root [data-dim="' + k + '"]');
+  const setBox = (n, l, t, w, h) => Object.assign(n.style, { left: l + 'px', top: t + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, h) + 'px' });
+  if (!r || r.width < 2 || r.height < 2) {
+    spot.className = 'spot none'; setBox(dim('t'), 0, 0, vw, vh); ['b', 'l', 'r'].forEach(k => setBox(dim(k), 0, 0, 0, 0));
+    pop.style.left = Math.max(16, (vw - pw) / 2) + 'px'; pop.style.top = Math.max(16, (vh - ph) / 2) + 'px'; return;
+  }
+  spot.className = 'spot';
+  const pad = 6; const L = r.left - pad, Tp = r.top - pad, W = r.width + pad * 2, Hh = r.height + pad * 2;
+  setBox(spot, L, Tp, W, Hh);
+  setBox(dim('t'), 0, 0, vw, Tp); setBox(dim('b'), 0, Tp + Hh, vw, vh - Tp - Hh);
+  setBox(dim('l'), 0, Tp, L, Hh); setBox(dim('r'), L + W, Tp, vw - L - W, Hh);
+  const clampY = y => Math.max(16, Math.min(y, vh - ph - 16)); const clampX = x => Math.max(16, Math.min(x, vw - pw - 16));
+  let x, y;
+  if (isNarrow()) { x = 16; y = r.bottom + g + ph < vh - 16 ? r.bottom + g : r.top - g - ph > 16 ? r.top - g - ph : vh - ph - 16; }
+  else if (r.right + g + pw < vw - 16) { x = r.right + g; y = clampY(r.top); }
+  else if (r.left - g - pw > 16) { x = r.left - g - pw; y = clampY(r.top); }
+  else if (r.bottom + g + ph < vh - 16) { x = clampX(r.left); y = r.bottom + g; }
+  else if (r.top - g - ph > 16) { x = clampX(r.left); y = r.top - g - ph; }
+  else { x = clampX(r.right - pw - 16); y = vh - ph - 24; }
+  pop.style.left = x + 'px'; pop.style.top = y + 'px';
+}
+function endTour() {
+  /* Stopping the story also stops its run; Fast-forward on the card can still finish it. */
+  if (S.tour && S.tour.mode === 'story') { S.tour.timers.forEach(cancel); cancel(S.runTimer); S.runTimer = null; }
+  S.tour = null; tourRender();
+}
+
+/* ---------- Play the story: runs the task scenario while the tour narrates ---------- */
+function storyLater(fn, ms) { const id = later(fn, ms); S.tour.timers.push(id); }
+function playStory() {
+  endTour(); S.offer = false; renderOffer(); closeOverlays();
+  resetStory(); baseView({ mtab: 'right' });
+  S.tour = { mode: 'story', timers: [], title: 'The team agreed', text: 'Kai, Masha and Emil agreed in #billing on a yearly plan at checkout, with unused days credited. Emil now hands the thread to Alfred.' };
+  render(); tourRender(); revealTarget();
+  storyLater(() => { handToAlfred('t-annual', 'emil'); render(); storyNarrate();
+    storyLater(() => { confirmTask('k-annual', 'emil'); render(); storyNarrate(); }, 4200); }, 3800);
+}
+const NARR = {
+  draft: ['Hand to Alfred', 'Alfred turned the thread into a task card. Emil has the Approver role in Web Shop, so his Confirm counts; Masha\'s would be refused.'],
+  design: ['Design gate', 'Before any code, the design gate checks the plan against the project\'s glossary and decisions.'],
+  executing: ['Executor at work', 'Executor works in its own session. Steps, times and changed files appear on the card as they happen.'],
+  review: ['Reviewer', 'Executor handed PR #42 to Reviewer. Every handoff is listed at the top of the card.'],
+  fixing: ['One finding', 'Reviewer found one problem and tagged its root cause, no-write-order. Executor fixes it.'],
+  ctx: ['Automatic context handoff', 'Executor\'s session reached 250k tokens. The runner saved its state and started a fresh session, and no one had to step in.'],
+  needs: ['Needs you', 'Alfred needs a price and asks Kai in the thread. Kai and Emil get a Needs you item in their Inbox, and Tasks counts one more task waiting on people.'],
+  answered: ['Answered', 'Kai answered in the thread, so the Inbox alert cleared itself and the work carries on.'],
+  final: ['Final checks', 'Tests and review run again on the last commit, 3245de5.'],
+  ready: ['Ready to merge', 'Evidence is bound to commit 3245de5: tests with no new failures against base, the review and a blind second review. Emil merges.'],
+  done: ['Done', 'Merged. Alfred posted the result in the thread and the Ready to merge alert is gone. Open Tasks or the Inbox to see where it all landed.']
+};
+function storyNarrate() {
+  if (!S.tour || S.tour.mode !== 'story') return;
+  const t = T(); if (!t) return;
+  let key = t.phase;
+  const answered = !!S.story.answerBy;
+  if (t.phase === 'executing' && t.ctx) key = answered ? 'answered' : 'ctx';
+  if (t.phase === 'review' && answered) key = 'final';
+  const [title, text] = NARR[key]; S.tour.title = title; S.tour.text = text; S.tour.finished = t.phase === 'done';
+  if (t.phase === 'needs' && !S.tour.answering) {
+    S.tour.answering = true;
+    storyLater(() => { if (T().phase !== 'needs') return; post('t-annual', { by: 'kai', text: KAI_ANSWER }, true); answerQuestion('kai', KAI_ANSWER); render(); storyNarrate(); }, 5200);
+  }
+  if (t.phase === 'ready' && !S.tour.merging) { S.tour.merging = true; storyLater(() => mergeTask('k-annual', 'emil'), 5200); }
+  tourRender(); revealTarget();
+}
+
+/* ---------- Columns ---------- */
+function toggleCol(c) {
+  if (S.max) { S.max = null; S.cols[c] = true; return; }
+  const vis = visibleCols(); if (vis.includes(c) && vis.length === 1) return;
+  S.cols[c] = !S.cols[c];
+}
+function hideCol(c) {
+  if (S.max === c) { S.max = null; }
+  const vis = visibleCols(); if (vis.length === 1 && vis[0] === c) { toast({ title: 'At least one column stays open', ms: 2500 }); return; }
+  S.cols[c] = false;
+}
+
+/* ---------- Reset ---------- */
+function resetDemo() {
+  clearTimers(); S = initialState(S);
+  ['picker-root', 'dialog-root', 'tour-root', 'offer-root', 'drawer-root'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+  const w = document.getElementById('composer-wrap'); w._key = null; w.innerHTML = '';
+  render(); toast({ title: 'Demo reset', body: 'Back to Web Shop / #billing before the task was handed over.', ms: 2500 });
+}
+
+/* ---------- Events ---------- */
+function doSend() { const ta = document.getElementById('composer-input'); const v = ta.value; if (!v.trim()) return; ta.value = ''; sendMessage(v); render(); ta.focus(); }
+
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-act]');
+  if (S.picker.open && !e.target.closest('#model-picker') && !e.target.closest('#model-btn')) closePicker();
+  if (S.dialog && S.dialog.open && !e.target.closest('.sel')) { S.dialog.open = null; renderDialog(); }
+  if (!a) return;
+  const act = a.dataset.act, id = a.dataset.id;
+  switch (act) {
+    case 'col-toggle': toggleCol(a.dataset.col); break;
+    case 'col-max': S.max = S.max === a.dataset.col ? null : a.dataset.col; break;
+    case 'col-hide': hideCol(a.dataset.col); break;
+    case 'palette': openPalette(); return;
+    case 'tour': startTour(0); return;
+    case 'story': playStory(); return;
+    case 'reset': resetDemo(); return;
+    case 'me': if (S.me !== id) { S.me = id; if (S.picker.open) closePicker(); toast({ title: 'Signed in as ' + person(id).name, body: roleIn(S.project, id) + ' in ' + projectById(S.project).name + '. Own messages show on the right.', ms: 3000 }); } break;
+    case 'theme': S.theme = a.dataset.v; break;
+    case 'theme-cycle': S.theme = { system: 'light', light: 'dark', dark: 'system' }[S.theme]; break;
+    case 'project': openProject(id); break;
+    case 'channel': openChannel(id); break;
+    case 'tasks': showTasks(id); break;
+    case 'inbox': S.mid = 'inbox'; S.mtab = 'mid'; break;
+    case 'people': S.mid = 'people'; S.mtab = 'mid'; break;
+    case 'thread': openThread(id); break;
+    case 'chan-settings': openChanSettings(); return;
+    case 'hand': handToAlfred(S.thread, S.me); break;
+    case 'confirm': confirmTask(id, S.me); break;
+    case 'merge': mergeTask(id, S.me); break;
+    case 'ff': fastForward(); return;
+    case 'open-work': S.drawer = id; break;
+    case 'drawer-close': S.drawer = null; break;
+    case 'answer': { const t = S.tasks[id]; openThread(t.thread); render(); const ta = document.getElementById('composer-input'); ta.focus(); return; }
+    case 'model-btn': if (S.picker.open) closePicker(); else openPicker(); return;
+    case 'pk-prov': S.picker.prov = id; S.picker.q = ''; S.picker.sel = 0; renderPicker(); return;
+    case 'pk-model': chooseModel(a.dataset.p, id); return;
+    case 'pk-reason': S.threads[S.thread].model.reasoning = a.dataset.v; renderPicker(); updateComposerBits(); return;
+    case 'send': doSend(); return;
+    case 'tasks-view': S.tasksView = a.dataset.v; if (a.dataset.v === 'list' && S.max === 'mid') S.max = null; break;
+    case 'tasks-filter': S.tasksFilter = a.dataset.v; break;
+    case 'done-toggle': S.doneOpen = !S.doneOpen; break;
+    case 'board-done': S.boardDoneOpen = !S.boardDoneOpen; break;
+    case 'inbox-item': {
+      const it = inboxItems(S.me).find(i => i.id === id);
+      if (it && it.taskId) { const t = S.tasks[it.taskId]; t.doneReadBy = (t.doneReadBy || []).concat(S.me); }
+      const raw = S.inbox.find(i => i.id === id); if (raw && !raw.readBy.includes(S.me)) raw.readBy.push(S.me);
+      openThread(a.dataset.thread); break;
+    }
+    case 'dlg-scrim': if (e.target !== a) return; S.dialog = null; renderDialog(); return;
+    case 'dlg-cancel': S.dialog = null; renderDialog(); { const b = document.getElementById('chan-settings-btn'); if (b) b.focus(); } return;
+    case 'dlg-save': saveChanSettings(); return;
+    case 'sel-toggle': S.dialog.open = S.dialog.open === a.dataset.sel ? null : a.dataset.sel; renderDialog(); { const o = document.querySelector('.sel-list [aria-selected="true"]') || document.querySelector('.sel-list button'); if (o) o.focus(); } return;
+    case 'sel-opt': {
+      const d = S.dialog; const v = a.dataset.v;
+      if (a.dataset.sel === 'agent') { d.agent = v; d.role = v === 'alfred' ? 'Chief of staff' : v === 'assistant' ? 'Assistant' : ''; } else d.role = v;
+      const key = a.dataset.sel; d.open = null; renderDialog(); document.getElementById('sel-' + key).focus(); return;
+    }
+    case 'mtab': S.mtab = a.dataset.v; break;
+    case 'toast-close': S.toasts = S.toasts.filter(t => String(t.id) !== id); renderToasts(); return;
+    case 'toast': toast({ title: a.dataset.msg, ms: 2800 }); return;
+    case 'offer-dismiss': S.offer = false; renderOffer(); return;
+    case 'tour-next': if (S.tour.i >= TOUR.length - 1) endTour(); else tourGo(S.tour.i + 1); return;
+    case 'tour-back': tourGo(S.tour.i - 1); return;
+    case 'tour-skip': endTour(); return;
+    case 'pal-scrim': if (e.target !== a) return; closePalette(); return;
+    case 'pal-item': { const it = S.palette.items[+a.dataset.i]; closePalette(); it.run(); break; }
+    default: return;
+  }
+  render();
+});
+
+document.addEventListener('change', (e) => {
+  const sk = e.target.dataset && e.target.dataset.skill;
+  if (sk && S.dialog) {
+    S.dialog.skills = e.target.checked ? S.dialog.skills.concat(sk) : S.dialog.skills.filter(s => s !== sk);
+    renderDialog(); document.getElementById('skill-' + sk).focus();
+  }
+});
+
+document.addEventListener('input', (e) => {
+  const id = e.target.id;
+  if (id === 'composer-input') { document.getElementById('send-btn').disabled = !e.target.value.trim(); e.target.style.height = 'auto'; e.target.style.height = Math.min(160, e.target.scrollHeight) + 'px'; }
+  else if (id === 'model-search') { S.picker.q = e.target.value; S.picker.sel = 0; renderPickerModels(); }
+  else if (id === 'pal-input') { S.palette.q = e.target.value; S.palette.sel = 0; renderPaletteList(); }
+});
+
+function moveSel(obj, dir, n) { obj.sel = (obj.sel + dir + n) % Math.max(n, 1); }
+document.addEventListener('keydown', (e) => {
+  const tid = e.target.id; const inField = /^(INPUT|TEXTAREA)$/.test(e.target.tagName);
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (!S.tour) openPalette(); return; }
+  if (e.key === 'Escape') {
+    if (S.tour) { endTour(); return; }
+    if (S.palette) { closePalette(); return; }
+    if (S.dialog && S.dialog.open) { const k = S.dialog.open; S.dialog.open = null; renderDialog(); document.getElementById('sel-' + k).focus(); return; }
+    if (S.picker.open) { closePicker(true); return; }
+    if (S.dialog) { S.dialog = null; renderDialog(); return; }
+    if (S.drawer) { S.drawer = null; render(); return; }
+    if (S.offer) { S.offer = false; renderOffer(); return; }
+    return;
+  }
+  if (S.tour && S.tour.mode === 'tour' && !inField) {
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (S.tour.i < TOUR.length - 1) tourGo(S.tour.i + 1); return; }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); if (S.tour.i > 0) tourGo(S.tour.i - 1); return; }
+  }
+  if (tid === 'composer-input' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); doSend(); return; }
+  if (tid === 'model-search') {
+    const { items } = pickerModels();
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); moveSel(S.picker, e.key === 'ArrowDown' ? 1 : -1, items.length); renderPickerModels(); }
+    if (e.key === 'Enter' && items[S.picker.sel]) { e.preventDefault(); chooseModel(items[S.picker.sel].p.id, items[S.picker.sel].m.id); }
+    return;
+  }
+  if (tid === 'pal-input') {
+    const items = S.palette.items || [];
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); moveSel(S.palette, e.key === 'ArrowDown' ? 1 : -1, items.length); renderPaletteList(); }
+    if (e.key === 'Enter' && items[S.palette.sel]) { e.preventDefault(); const it = items[S.palette.sel]; closePalette(); it.run(); render(); }
+    return;
+  }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('.bcard[role="button"]')) { e.preventDefault(); e.target.click(); }
+});
+
+/* Only layout depends on the viewport; crossing the phone breakpoint needs a full render. */
+let rz = 0;
+window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { applyCols(); if (S.picker.open) positionPicker(); if (S.tour) tourPlace(); }); });
+if (mqNarrow.addEventListener) mqNarrow.addEventListener('change', () => { render(); if (S.tour) tourRender(); });
+
+/* ---------- Boot ---------- */
+S = initialState(null);
+try { if (localStorage.getItem('factory-proto-offer') === 'seen') S.offer = false; localStorage.setItem('factory-proto-offer', 'seen'); } catch (err) { /* storage may be blocked; the offer just shows again */ }
+render();
+</script>
+</body>
+</html>
