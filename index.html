@@ -441,6 +441,8 @@ details.more > div { margin-top: 8px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field > .flabel { font-size: 13px; font-weight: 500; display: flex; gap: 6px; align-items: baseline; }
 .field .req { font-size: 11px; color: var(--muted-fg); font-weight: 400; }
+.input { width: 100%; border: 1px solid var(--input); border-radius: 8px; background: var(--card); padding: 8px 10px; resize: vertical; }
+.input:focus { outline: 2px solid var(--ring); outline-offset: 0; }
 .sel { position: relative; }
 .sel-btn { width: 100%; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid var(--input); border-radius: 8px; background: var(--card); text-align: left; }
 .sel-btn:disabled { opacity: .55; }
@@ -480,7 +482,7 @@ details.more > div { margin-top: 8px; }
 .etable td { padding: 7px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
 
 /* Toasts, palette, offer */
-.toasts { position: fixed; z-index: 60; right: max(24px, calc(env(safe-area-inset-right, 0px) + 16px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100vw - 48px)); }
+.toasts { position: fixed; z-index: 60; left: max(24px, calc(env(safe-area-inset-left, 0px) + 16px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 8px; width: min(360px, calc(100vw - 48px)); }
 .toast { background: var(--popover); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-pop); padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 4px 10px; align-items: start; font-size: 13px; animation: rise .2s ease-out; }
 .toast.attn { border-color: var(--warning-border); }
 .toast .tt { font-weight: 600; }
@@ -498,7 +500,6 @@ details.more > div { margin-top: 8px; }
 .offer .acts { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* Tour */
-.tour-block { position: fixed; inset: 0; z-index: 70; }
 .spot { position: fixed; z-index: 71; border-radius: 12px; pointer-events: none; outline: 2px solid var(--primary); outline-offset: 0; transition: left .25s ease, top .25s ease, width .25s ease, height .25s ease; }
 .spot.none { display: none; }
 .dim { position: fixed; z-index: 70; background: var(--scrim); transition: all .25s ease; }
@@ -540,6 +541,7 @@ details.more > div { margin-top: 8px; }
   .msg.own .msg-body { max-width: 92%; }
   .kv { grid-template-columns: 96px minmax(0, 1fr); }
   .tpop { left: 16px !important; right: 16px; width: auto; }
+  .toasts { bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 1100px) and (min-width: 761px) {
   .col-left { width: 216px; }
@@ -841,7 +843,7 @@ function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<'
 function fmtText(s) {
   let h = esc(s);
   h = h.replace(/`([^`]+)`/g, '<code class="inl">$1</code>');
-  h = h.replace(/(^|[\s(])@(Emil|Masha|Kai|Alfred)\b/g, '$1<span class="mention">@$2</span>');
+  h = h.replace(/(^|[\s(])@(Emil|Masha|Kai|Alfred|Assistant)\b/g, '$1<span class="mention">@$2</span>');
   return h.split(/\n\n+/).map(p => '<p>' + p.replace(/\n/g, '<br>') + '</p>').join('');
 }
 function person(id) { return PEOPLE[id] || { name: id, av: '--av-executor', kind: 'human' }; }
@@ -851,7 +853,7 @@ function avatar(id, cls) {
 }
 function projectById(id) { return PROJECTS.find(p => p.id === id); }
 function chanById(id) { for (const p of PROJECTS) { const c = p.channels.find(c => c.id === id); if (c) return Object.assign({ project: p.id }, c); } return null; }
-function threadsIn(chanId) { return Object.keys(S.threads).filter(k => S.threads[k].channel === chanId); }
+function threadsIn(chanId) { return Object.keys(S.threads).filter(k => S.threads[k].channel === chanId).sort((a, b) => (S.threads[b].created || 0) - (S.threads[a].created || 0)); }
 function projectOfThread(tid) { return chanById(S.threads[tid].channel).project; }
 function roleIn(pid, who) { return (projectById(pid).roles || {})[who] || 'Guest'; }
 function canApprove(pid, who) { return roleIn(pid, who) === 'Approver'; }
@@ -999,7 +1001,7 @@ function feedView() {
   const agentBtn = cs.agent !== 'none'
     ? '<button class="chan-agent set" data-act="chan-settings" id="chan-settings-btn" title="Channel settings">' + icon('gear', 'sm') + '<span class="hide-m">' + esc(person(cs.agent).name + ' · ' + cs.role) + '</span></button>'
     : '<button class="chan-agent" data-act="chan-settings" id="chan-settings-btn" title="Channel settings">' + icon('gear', 'sm') + '<span class="hide-m">Channel settings</span></button>';
-  let h = '<div class="col-head"><h2>#' + esc(c.name) + '</h2><span class="sub grow">' + esc(p.name) + ' · ' + esc(c.desc) + '</span>' + agentBtn + colTools('mid') + '</div>';
+  let h = '<div class="col-head"><h2>#' + esc(c.name) + '</h2><span class="sub grow">' + esc(p.name) + ' · ' + esc(c.desc) + '</span><button class="btn sm" data-act="new-thread" id="new-thread-btn">' + icon('plus', 'xs') + '<span class="hide-m">New thread</span><span class="sr">New thread</span></button>' + agentBtn + colTools('mid') + '</div>';
   if (p.channels.length > 1) {
     h += '<div class="chan-tabs" id="chan-switcher" role="group" aria-label="Channels in ' + esc(p.name) + '">' + p.channels.map(ch => '<button data-act="channel" data-id="' + ch.id + '" aria-pressed="' + (ch.id === S.channel) + '">#' + esc(ch.name) + '</button>').join('') + '</div>';
   }
@@ -1010,7 +1012,7 @@ function feedView() {
     if (th.day !== lastDay) { h += '<div class="day"><span>' + esc(th.day) + '</span></div>'; lastDay = th.day; }
     const who = [...new Set(msgs.map(m => m.by))].slice(0, 4);
     const t = th.taskId && S.tasks[th.taskId];
-    h += '<button class="tcard' + (S.thread === tid ? ' sel' : '') + '" data-act="thread" data-id="' + tid + '">' +
+    h += '<button class="tcard' + (S.thread === tid ? ' sel' : '') + '" data-act="thread" data-id="' + tid + '" id="tc-' + tid + '">' +
       '<span class="who">' + avatar(first.by) + '<b>' + esc(person(first.by).name) + '</b><time>' + esc(first.time) + '</time></span>' +
       '<span class="title">' + esc(th.title) + '</span><span class="first">' + esc(first.text.replace(/`/g, '')) + '</span>' +
       '<span class="meta"><span class="avs">' + who.map(w => avatar(w)).join('') + '</span><span class="replies">' + (msgs.length - 1) + ' replies</span><span>Last reply ' + esc(last.time) + '</span>' +
@@ -1022,7 +1024,7 @@ function feedView() {
 
 function taskRow(t) {
   const si = stepInfo(t); const ch = chanById(S.threads[t.thread].channel);
-  return '<button class="trow' + (t.phase === 'needs' ? ' attn' : '') + (S.thread === t.thread ? ' sel' : '') + '" data-act="thread" data-id="' + t.thread + '">' +
+  return '<button class="trow' + (t.phase === 'needs' ? ' attn' : '') + (S.thread === t.thread ? ' sel' : '') + '" data-act="thread" data-id="' + t.thread + '" id="trow-' + t.id + '">' +
     '<span class="dot ' + LANES.find(l => l.id === LANE_OF[t.phase]).dot + '"></span><span class="t-title">' + esc(t.title) + '</span><span class="t-time">' + dur(t.elapsed) + '</span>' +
     '<span class="t-meta"><span>#' + esc(ch.name) + '</span><span class="pill ' + (t.phase === 'needs' ? 'warn' : 'info') + '">' + esc(holderText(t)) + '</span>' +
     (si.total && t.phase !== 'done' ? '<span>' + esc(si.label) + '</span><span class="bar sm"><i style="width:' + si.pct + '%"></i></span>' : '') +
@@ -1150,10 +1152,11 @@ function renderThread() {
 }
 
 function renderComposer() {
-  const wrap = document.getElementById('composer-wrap'); const key = S.thread + '|' + S.me;
+  const wrap = document.getElementById('composer-wrap'); const quiet = S.chan[S.threads[S.thread].channel].agent === 'none';
+  const key = S.thread + '|' + S.me + '|' + quiet;
   if (wrap._key !== key) {
     const prevDraft = wrap._key && wrap._key.split('|')[0] === S.thread ? (document.getElementById('composer-input') || {}).value : '';
-    wrap.innerHTML = '<div class="composer"><label class="sr" for="composer-input">Reply in thread</label><textarea id="composer-input" rows="2" placeholder="Reply as ' + person(S.me).name + '…"></textarea>' +
+    wrap.innerHTML = '<div class="composer"><label class="sr" for="composer-input">Reply in thread</label><textarea id="composer-input" rows="2" placeholder="Reply as ' + person(S.me).name + '…' + (quiet ? ' Mention @Assistant to ask the agent.' : '') + '"></textarea>' +
       '<div class="composer-row"><button class="ibtn" data-act="toast" data-msg="Attachments are not part of this prototype." aria-label="Attach a file">' + icon('clip', 'sm') + '</button><span class="grow"></span>' +
       '<button class="model-btn" id="model-btn" data-act="model-btn" aria-haspopup="dialog" aria-expanded="false"></button>' +
       '<button class="send" id="send-btn" data-act="send" aria-label="Send" disabled>' + icon('arrowUp', 'sm') + '</button></div></div>' +
@@ -1204,7 +1207,7 @@ function taskCard(t) {
       '<div class="task-acts"><button class="btn sm" data-act="open-work" data-id="' + t.id + '">' + icon('layers', 'xs') + 'Open agent work</button>' + (t.evidence.length ? '<span class="deny">' + icon('shield', 'xs') + 'Evidence · ' + t.evidence.length + '</span>' : '') + '</div></div>';
   }
   if (t.phase === 'needs') {
-    h += '<div class="task-sec"><div class="ask"><span><b>Waiting for people.</b> Alfred asked ' + esc(names(t.ask.to)) + ': ' + esc(t.ask.text) + '</span><span class="task-acts">' + answerButton(t) + '<span class="deny">Sent to the Inbox of ' + esc(names(t.ask.to.concat(t.ask.to.includes(OWNER) ? [] : [OWNER]))) + '</span></span></div></div>';
+    h += '<div class="task-sec"><div class="ask" id="ask-' + t.id + '"><span><b>Waiting for people.</b> Alfred asked ' + esc(names(t.ask.to)) + ': ' + esc(t.ask.text) + '</span><span class="task-acts">' + answerButton(t) + '<span class="deny">Sent to the Inbox of ' + esc(names(t.ask.to.concat(t.ask.to.includes(OWNER) ? [] : [OWNER]))) + '</span></span></div></div>';
   }
   if (t.design) h += '<div class="task-sec"><div class="gate">' + icon('circleCheck', 'sm ic-ok') + '<span><b>Design gate · Design OK</b> · 1 note<br><span class="d">' + esc(t.design) + '</span></span></div></div>';
   if (t.phase === 'design') h += '<div class="task-sec"><div class="gate">' + icon('circleDot', 'sm ic-run') + '<span><b>Design gate</b> is reviewing the plan<br><span class="d">Checks the plan against the glossary and ADRs before any code.</span></span></div></div>';
@@ -1261,11 +1264,11 @@ function render() {
   applyTheme(); renderTop(); renderLeft(); renderMid(); renderThread(); renderDrawer(); renderMtabs(); applyCols();
   if (S.picker.open) positionPicker();
   renderToasts(); renderOffer();
-  if (S.tour) requestAnimationFrame(tourPlace);
+  if (S.tour) { placeTour(); tourCheck(); }
 }
 /* ---------- Navigation ---------- */
 function openProject(pid) {
-  const p = projectById(pid); S.project = pid; S.mid = 'feed'; S.channel = p.channels[p.channels.length - 1].id; S.mtab = 'mid';
+  const p = projectById(pid); S.project = pid; S.mid = 'feed'; S.channel = p.channels[0].id; S.mtab = 'mid';
 }
 function openChannel(cid) { S.channel = cid; S.project = chanById(cid).project; S.mid = 'feed'; S.mtab = 'mid'; }
 function openThread(tid) {
@@ -1304,10 +1307,13 @@ function sendMessage(text) {
   post(tid, { by: S.me, text });
   const t = th.taskId && S.tasks[th.taskId];
   if (t && t.id === 'k-annual' && t.phase === 'needs') { answerQuestion(S.me, text); return; }
-  const cs = S.chan[th.channel]; const agent = cs.agent === 'alfred' ? 'alfred' : 'assistant';
+  /* A channel without a default agent is people-only: an agent answers only when someone calls it in. */
+  const called = /@(assistant|alfred)\b/i.exec(text);
+  const agent = called ? called[1].toLowerCase() : S.chan[th.channel].agent;
+  if (agent === 'none') return;
   const model = Object.assign({}, th.model);
   S.typing = { thread: tid, by: agent, model: model.id };
-  later(() => {
+  S.replyTimer = later(() => {
     S.typing = null;
     post(tid, { by: agent, text: replyFor(tid, text, model), model: { provider: model.provider, id: model.id } });
     S.clock += 1; render();
@@ -1373,7 +1379,7 @@ function confirmTask(id, by) {
 
 function mergeTask(id, by) {
   const t = S.tasks[id]; if (!t || t.phase !== 'ready' || !canApprove(t.project, by)) return;
-  if (id === 'k-annual') { S.story.mergedBy = by; cancel(S.runTimer); stepOnce(); afterStep(); return; }
+  if (id === 'k-annual') { S.story.mergedBy = by; stopRun(); stepOnce(); afterStep(); return; }
   t.phase = 'done'; t.doneAt = clockStr(); t.doneNew = true; t.doneReadBy = [];
   t.timeline.push([clockStr(), person(by).name + ' merged PR #' + t.pr, 'h']);
   post(t.thread, { by: 'alfred', model: OPUS, text: 'Merged PR #' + t.pr + ' into main as `' + t.sha + '`. ' + person(by).name + ' merged it; the Ready to merge alert is cleared.' });
@@ -1382,7 +1388,8 @@ function mergeTask(id, by) {
 
 const KAI_ANSWER = '$96. Two months free reads better on the pricing page, and finance is fine with it.';
 function recordAnswer(by, text) { S.story.answerBy = by; S.story.price = /108/.test(text) ? 108 : 96; }
-function kaiAnswers() { post('t-annual', { by: 'kai', text: KAI_ANSWER }, true); recordAnswer('kai', KAI_ANSWER); }
+/* loud: the live answer (toast, run resumes); quiet: the tour rebuilding past the question. */
+function kaiAnswers(loud) { post('t-annual', { by: 'kai', text: KAI_ANSWER }, true); (loud ? answerQuestion : recordAnswer)('kai', KAI_ANSWER); }
 function answerQuestion(by, text) {
   recordAnswer(by, text);
   toast({ title: 'Needs you · cleared', body: person(by).name + ' answered in the thread, so the Inbox alert for Kai and Emil cleared itself.' });
@@ -1428,7 +1435,7 @@ const STORY = [
     t.timeline.push([clockStr(), 'Alfred asked Kai in the thread. Inbox: Needs you to Kai and Emil', '']);
     post('t-annual', { by: 'alfred', model: OPUS, text: '@Kai, Executor needs the price before the last step: $96 a year (two months free) or $108 (one month free)? Monthly stays $9. Emil\'s credit rule works with either.' }, true);
     toast({ attn: true, by: 'alfred', title: 'Needs you · Kai, $96 or $108 a year?', body: 'Alfred asked in #billing. Sent to the Inbox of Kai and Emil.', thread: 't-annual', ms: 7000 }); },
-  gated(() => !!S.story.answerBy, kaiAnswers, () => { const t = T(); tick(1); t.phase = 'executing'; t.ask = null;
+  gated(() => !!S.story.answerBy, () => kaiAnswers(false), () => { const t = T(); tick(1); t.phase = 'executing'; t.ask = null;
     t.criteria[3].ok = true; t.criteria[0].t = 'Checkout offers Monthly ($9) and Annual ($' + S.story.price + ')';
     t.timeline.push([clockStr(), person(S.story.answerBy).name + ' answered: $' + S.story.price + '. Needs you cleared', '']);
     const s = stepAt(5, 'done', '0m 40s'); s.diff = [['plans.ts', 1, 1]]; t.sha = '3245de5'; stepAt(6, 'run', 'running');
@@ -1454,31 +1461,31 @@ function canStep() {
   return !STORY[p].wait || STORY[p].wait();
 }
 function stepOnce() { if (!canStep()) return false; STORY[S.story.pos](); S.story.pos++; return true; }
+function stopRun() { cancel(S.runTimer); S.runTimer = null; }
 function schedule(ms) {
-  cancel(S.runTimer); S.runTimer = null;
+  stopRun();
   if (!canStep()) return;
   S.runTimer = later(() => { S.runTimer = null; if (stepOnce()) { afterStep(); schedule(); } }, ms || (S.tour && S.tour.mode === 'story' ? 1500 : 1900));
 }
 function afterStep() { render(); if (S.tour && S.tour.mode === 'story') storyNarrate(); }
-function fastForward() { cancel(S.runTimer); while (stepOnce()) { /* run to the next point that needs people */ } afterStep(); }
+function fastForward() { stopRun(); while (stepOnce()) { /* run to the next point that needs people */ } afterStep(); }
 
 function resetStory() {
-  cancel(S.runTimer); S.runTimer = null;
+  stopRun(); cancel(S.replyTimer); S.typing = null;
   const th = S.threads['t-annual']; th.msgs = th.msgs.filter(m => !m.story); th.taskId = null;
   delete S.tasks['k-annual'];
   S.story = freshStory();
   S.clock = 0; if (S.drawer === 'k-annual') S.drawer = null;
 }
-/* Rebuild the annual task at a given script position without timers (used by the tour). */
-function storyTo(pos) {
-  resetStory(); if (pos < 0) return;
-  S.silent = true;
-  handToAlfred('t-annual', 'emil');
+/* Bring the annual task forward to a script position without timers or toasts (used by the tour). */
+function advanceTo(pos) {
+  const silent = S.silent; S.silent = true;
+  if (!T()) handToAlfred('t-annual', 'emil');
   while (S.story.pos < pos) {
     const st = STORY[S.story.pos]; if (st.wait && !st.wait()) st.auto();
     if (!stepOnce()) break;
   }
-  cancel(S.runTimer); S.runTimer = null; S.silent = false;
+  stopRun(); S.silent = silent;
 }
 
 /* ---------- Model picker ---------- */
@@ -1522,7 +1529,7 @@ function renderPicker(partial) {
   const cur = S.threads[S.thread].model;
   const provHtml = PROVIDERS.map(p => '<button data-act="pk-prov" data-id="' + p.id + '" aria-pressed="' + (S.picker.prov === p.id) + '">' + icon(p.ic, 'prov-ic ' + p.id) + '<span class="pn">' + esc(p.name) + '</span>' +
     '<span class="pd"><i class="' + (S.loaded[p.id] ? '' : 'wait') + '"></i>' + (S.loaded[p.id] ? 'detected on this host' : 'detecting…') + '</span></button>').join('');
-  if (partial && root.firstChild) { root.querySelector('.pk-prov').innerHTML = provHtml; renderPickerModels(); if (S.tour) tourPlace(); return; }
+  if (partial && root.firstChild) { root.querySelector('.pk-prov').innerHTML = provHtml; renderPickerModels(); if (S.tour) placeTour(); return; }
   root.innerHTML = '<div class="picker" id="model-picker" role="dialog" aria-label="Choose a model for this thread">' +
     '<div class="pk-prov" aria-label="Providers">' + provHtml + '</div>' +
     '<div class="pk-list"><div class="pk-search">' + icon('search', 'sm') + '<label class="sr" for="model-search">Search models</label><input id="model-search" placeholder="Search models…" autocomplete="off" value="' + esc(S.picker.q) + '"></div><div class="pk-models" id="pk-models" role="listbox" aria-label="Models"></div></div>' +
@@ -1557,6 +1564,7 @@ function renderDialog() {
   const root = document.getElementById('dialog-root');
   if (S.palette) { renderPalette(); return; }
   if (!S.dialog) { root.innerHTML = ''; return; }
+  if (S.dialog.type === 'thread') { renderNewThread(); return; }
   const d = S.dialog; const c = chanById(d.chan);
   const agentLbl = AGENT_OPTIONS.find(o => o.id === d.agent).label;
   const n = d.skills.length;
@@ -1604,62 +1612,142 @@ function renderOffer() {
   root.innerHTML = '<div class="offer" role="dialog" aria-labelledby="offer-title"><h3 id="offer-title">Take a 2-minute tour of Factory?</h3><p>See how a thread becomes a task, how Alfred runs the executor and reviewer, and where people step in.</p>' +
     '<div class="acts"><button class="btn primary sm" data-act="tour">' + icon('compass', 'xs') + 'Start the tour</button><button class="btn sm" data-act="story">' + icon('play', 'xs') + 'Play the story</button><button class="btn ghost sm" data-act="offer-dismiss">Not now</button></div></div>';
 }
-/* ---------- Guided tour ---------- */
-function baseView(extra) {
-  resetStory();
-  S.max = null; S.cols = { left: true, mid: true, right: true }; S.me = 'emil';
-  S.project = 'web'; S.channel = 'w-billing'; S.mid = 'feed'; S.thread = 't-annual';
-  Object.assign(S, extra || {});
-}
-const TOUR = [
-  { t: 'Projects and channels', b: 'Each project is a room around one business area and can span several repositories. The open project shows its Tasks, with a count of tasks waiting on people, and its channels.',
-    target: '#left-projects', prep: () => baseView({ mtab: 'left' }) },
-  { t: 'A switcher only when it helps', b: 'Web Shop has two channels, so the feed shows a channel switcher. Mobile App has only #general and shows none.',
-    target: '#chan-switcher', prep: () => baseView({ mtab: 'mid' }) },
-  { t: 'Hide, maximize, restore', b: 'Any column can be hidden or maximized and then restored. The buttons sit in each column header and in the top-left toggles.',
-    bNarrow: 'On a phone you see one column at a time. Switch between them with the tabs at the bottom.',
-    target: '#top-toggles', targetNarrow: '#mtabs', prep: () => baseView({ mtab: 'mid' }) },
-  { t: 'Channel settings', b: 'A channel can have a default agent and a role, for example Alfred as Chief of staff. Skills stay folded under "Attach a skill" until someone needs them.',
-    target: '#dlg-channel', prep: () => baseView({ mtab: 'mid' }), after: () => { openChanSettings(); S.dialog.skillsOpen = true; renderDialog(); } },
-  { t: 'Pick a model, switch it mid-thread', b: 'The model button sits next to Send: providers on the left, search in the middle, reasoning on the right. Codex models arrive a second later because each provider answers on its own. Switch mid-thread and the next answer still reads the whole thread; each thread remembers its model.',
-    target: '#model-picker', prep: () => baseView({ mtab: 'right' }), after: () => openPicker() },
-  { t: 'Everyone writes as themselves', b: 'Each person signs in with their own identity, and agents get every message with its author\'s name. Switch to Masha: her messages move to the right and she can no longer confirm tasks.',
-    target: '#id-switch', prep: () => baseView({ mtab: 'right' }) },
-  { t: 'Hand to Alfred', b: 'Hand to Alfred puts a task card into the thread: what to do, acceptance criteria, who assigned it, repositories. Only someone with the Approver role in the project can confirm it, and the server checks that role.',
-    target: '#card-k-annual', prep: () => { baseView({ mtab: 'right' }); storyTo(0); } },
-  { t: 'The card while agents work', b: 'Alfred runs an executor and a reviewer in their own sessions. The card shows first what each agent handed to the next, then the steps, times and changed files.',
-    target: '#handoffs-k-annual', prep: () => { baseView({ mtab: 'right' }); storyTo(8); } },
-  { t: 'Open agent work', b: 'The executor and reviewer talk here, away from the team\'s conversation. Evidence per commit and the automatic context handoff at 250k tokens are here too.',
-    target: '#agent-drawer', prep: () => { baseView({ mtab: 'right' }); storyTo(8); S.drawer = 'k-annual'; } },
-  { t: 'Needs you, through the Inbox', b: 'When a decision is needed, Alfred asks in the thread. The question goes to the Inbox of Kai and Emil and clears itself once someone answers.',
-    target: '#inbox-needs-k-annual', prep: () => { baseView({ mtab: 'mid', mid: 'inbox' }); storyTo(9); } },
-  { t: 'Evidence, then Merge', b: 'Before merging, the card shows what was checked and on which commit: tests with no new failures against base, the review and a blind second review, all on 3245de5. Merge is open to people with merge rights.',
-    target: '#evidence-k-annual', prep: () => { baseView({ mtab: 'right' }); storyTo(12); } },
-  { t: 'Tasks: List and Board', b: 'Tasks indexes every task in the project. List is the default; maximize the middle column for the Board. Nobody drags cards: agents move them, and each card offers the one action it needs.',
-    target: '#col-mid', prep: () => baseView({ mtab: 'mid', mid: 'tasks', tasksView: 'list' }) }
-];
 
-function closeOverlays() { if (S.picker.open) closePicker(); S.dialog = null; S.palette = null; S.drawer = null; renderDialog(); }
-function startTour(i) {
-  endTour(); S.offer = false; renderOffer();
-  S.tour = { mode: 'tour', i: i || 0 }; tourGo(S.tour.i);
+/* ---------- New thread ---------- */
+function openNewThread() { S.dialog = { type: 'thread', chan: S.channel }; renderDialog(); document.getElementById('nt-title').focus(); }
+function renderNewThread() {
+  const c = chanById(S.dialog.chan);
+  document.getElementById('dialog-root').innerHTML = '<div class="overlay" data-act="dlg-scrim"><div class="dialog" role="dialog" aria-modal="true" aria-labelledby="nt-head" id="dlg-thread">' +
+    '<div><h3 id="nt-head">New thread in #' + esc(c.name) + '</h3><p class="desc">Start one conversation. Its task and result will live here too.</p></div>' +
+    '<div class="field"><label class="flabel" for="nt-title">Title</label><input class="input" id="nt-title" autocomplete="off" placeholder="Refund requests for annual plans"></div>' +
+    '<div class="field"><label class="flabel" for="nt-body">First message</label><textarea class="input" id="nt-body" rows="3" placeholder="What should the team look at?"></textarea></div>' +
+    '<div class="dlg-acts"><button type="button" class="btn ghost" data-act="dlg-cancel">Cancel</button><button type="button" class="btn primary" data-act="nt-post" id="nt-post" disabled>Post thread</button></div></div></div>';
 }
-function tourGo(i) {
+function newThreadFields() { const v = id => document.getElementById(id).value.trim(); return { title: v('nt-title'), body: v('nt-body') }; }
+function postNewThread() {
+  const { title, body } = newThreadFields(); if (!title || !body) return;
+  const n = S.seq++; const id = 't-new-' + n; const chan = S.dialog.chan;
+  S.threads[id] = { channel: chan, title, day: 'Today', created: n, model: Object.assign({ reasoning: 'Medium' }, OPUS), msgs: [] };
+  post(id, { by: S.me, text: body });
+  S.dialog = null; renderDialog(); openThread(id); render();
+  toast({ title: 'Thread posted in #' + chanById(chan).name, body: title, ms: 2500 });
+}
+/* ---------- Guided tour: one task, from conversation to merge, from a person's side ---------- */
+/* Each step's prep(dir) sets up what the step needs. Going forward it only fills in missing progress
+   (so whatever the person already did stays); going back it rebuilds that step's starting point. */
+function view(o) { S.max = null; S.cols = { left: true, mid: true, right: true }; Object.assign(S, o); }
+function storyAt(pos, dir) { if (dir === 'back') resetStory(); if (S.story.pos < pos) advanceTo(pos); }
+function draft(text) { const ta = document.getElementById('composer-input'); if (ta && !ta.value.trim()) { ta.value = text; updateComposerBits(); } }
+function sinceMark() { return S.threads['t-annual'].msgs.slice(S.tour.mark).filter(m => m.by); }
+const annualThread = { project: 'web', channel: 'w-billing', mid: 'feed', thread: 't-annual' };
+/* The annual thread at a script position; o overrides the view (Inbox, Tasks, another tab). */
+const at = (pos, o) => (dir) => { storyAt(pos, dir); view(Object.assign({ mtab: 'right' }, annualThread, o)); };
+const orient = (mtab, first) => () => { if (first) resetStory(); view(Object.assign({ me: 'emil', mtab }, annualThread)); };
+/* Inbox steps move the open thread away, so opening the alert is what brings it back. */
+const inboxAt = (pos) => at(pos, { mid: 'inbox', mtab: 'mid', thread: 't-invoice' });
+
+const TOURS = {
+  main: [
+    { t: 'Projects', b: 'A project is a room for one area of your business, like the web shop. It can cover several repositories, and the whole team sees it.',
+      target: '#left-projects [data-act=project]', prep: orient('left', true) },
+    { t: 'Channels', b: 'Channels split a project by topic. A new project starts with #general; you see a switcher once there\'s a second channel.',
+      target: '#left-projects [data-act=channel]', prep: orient('left') },
+    { t: 'Threads', b: 'Each card is a thread: one conversation, and later its task and result, stay in it.',
+      target: '#col-mid .feed', prep: orient('mid') },
+    { t: 'The open thread', b: 'This is where you talk with people and agents.',
+      target: '#col-right', prep: orient('right') },
+    { t: 'Tasks and Inbox', b: 'Tasks lists the work agents are doing for this project. Inbox shows what needs you.',
+      target: ['#nav-tasks', '#nav-inbox'], prep: orient('left') },
+    { t: 'Find your channel', b: 'Open Web Shop, then choose #billing. That\'s where the team talks about plans and payments.',
+      target: ['#left-projects', '#chan-switcher'],
+      prep: () => { resetStory(); view({ me: 'emil', project: 'general', channel: 'g-general', mid: 'feed', thread: 't-demo', mtab: 'left' }); },
+      done: () => S.mid === 'feed' && S.channel === 'w-billing' },
+    { t: 'Open a thread', b: 'Select "Annual plan at checkout" to read the conversation. New thread, at the top of the feed, starts a new one.',
+      target: '#tc-t-annual', prep: at(-1, { mtab: 'mid', thread: 't-invoice' }), done: () => S.thread === 't-annual' },
+    { t: 'Talk with the agent', b: 'Pick a model beside Send, then ask how the annual plan should handle unused days. The question is filled in; press Send.',
+      target: ['#composer-wrap', '#model-picker'], focus: true, prep: at(-1),
+      after: () => draft('@Assistant how should the annual plan handle the unused days when someone switches from monthly?'),
+      done: () => sinceMark().some(m => m.model) },
+    { t: 'Agree on the work', b: 'Post the team\'s decision in the thread so everyone sees what you agreed. The draft is ready; press Send.',
+      target: '#composer-wrap', focus: true, prep: at(-1),
+      after: () => draft('Decision: we add the annual plan at checkout. Unused days of the monthly plan are credited, never refunded. Kai confirms the price.'),
+      done: () => sinceMark().some(m => m.by === S.me) },
+    { t: 'Hand to Alfred', b: 'Click Hand to Alfred. A draft task appears in the thread.',
+      target: '#hand-btn', prep: at(-1), done: () => !!T() },
+    { t: 'Confirm the task', b: 'Check what will be done and the acceptance criteria. If you\'re an Approver, click Confirm to start the work.',
+      target: '#confirm-k-annual', prep: at(0), done: () => !!(T() && T().confirmedBy) },
+    { t: 'Check progress', b: 'Watch the card: which step is underway and which files changed. It moves on by itself, or press Fast-forward.',
+      target: '#steps-k-annual', prep: (dir) => { at(1)(dir); schedule(); }, done: () => T() && T().phase === 'needs' },
+    { t: 'Open the alert', b: 'Alfred needs a decision. In your Inbox, select the Needs you item to see the question.',
+      target: '#inbox-needs-k-annual', prep: inboxAt(9), done: () => S.thread === 't-annual' },
+    { t: 'Answer Alfred', b: 'Alfred asks for the annual price. Type it and send; the alert clears and the work picks up again.',
+      target: ['#ask-k-annual', '#composer-wrap'], focus: true, prep: at(9),
+      after: () => draft('$96 a year, so two months free.'), done: () => !!S.story.answerBy },
+    { t: 'Open Ready to merge', b: 'When the work is done, a Ready to merge alert lands in your Inbox. Select it.',
+      target: '#inbox-ready-k-annual', prep: inboxAt(12), done: () => S.thread === 't-annual' },
+    { t: 'Check the evidence', b: 'Check that tests and both reviews passed on the latest commit, 3245de5.',
+      target: '#evidence-k-annual', prep: at(12) },
+    { t: 'Merge the PR', b: 'Click Merge when you\'re satisfied. Alfred posts the result in the thread.',
+      target: '#merge-k-annual', prep: at(12), done: () => T() && T().phase === 'done' },
+    { t: 'Find it later', b: 'Finished tasks stay under Web Shop → Tasks → Done, and the Task done alert waits in your Inbox. Both open this thread.',
+      target: '#trow-k-annual', prep: at(13, { mid: 'tasks', tasksView: 'list', tasksFilter: 'all', doneOpen: true, mtab: 'mid' }) }
+  ],
+  more: [
+    { t: 'Columns', b: 'Hide a column, or maximize one to focus, then restore it with the same buttons.', bNarrow: 'On a phone you see one column at a time. Switch with the tabs at the bottom.',
+      target: '#top-toggles', targetNarrow: '#mtabs', prep: () => view({ mtab: 'mid' }) },
+    { t: 'Channel settings', b: 'Choose who answers in a channel by default and which skills it uses. A channel can also stay people-only.',
+      target: '#dlg-channel', prep: () => view({ project: 'web', channel: 'w-billing', mid: 'feed', mtab: 'mid' }), after: () => { openChanSettings(); S.dialog.skillsOpen = true; renderDialog(); } },
+    { t: 'Roles', b: 'Sign in as Masha to see the same thread as a Developer. She can write, but she can\'t confirm tasks or merge.',
+      target: '#id-switch', prep: () => view(Object.assign({ mtab: 'right' }, annualThread)) },
+    { t: 'Agent work', b: 'Open agent work on a task card to read how the executor and reviewer got there, with the checks for each commit.',
+      target: '#agent-drawer', prep: () => { at(8)('fwd'); S.drawer = 'k-annual'; } }
+  ]
+};
+function steps() { return TOURS[S.tour.set]; }
+function closeOverlays() { if (S.picker.open) closePicker(); S.dialog = null; S.palette = null; S.drawer = null; renderDialog(); }
+function startTour(set) {
+  endTour(); S.offer = false; renderOffer();
+  /* The tour explains each step itself, so toasts would only cover the spotlight. */
+  S.silent = true; S.toasts = []; renderToasts();
+  S.tour = { mode: 'tour', set: set || 'main', i: 0, timers: [] }; tourGo(0, 'fwd');
+}
+function tourGo(i, dir) {
   if (!S.tour) return;
-  S.tour.i = Math.max(0, Math.min(TOUR.length - 1, i));
+  S.tour.timers.forEach(cancel); S.tour.timers = [];
+  S.tour.i = Math.max(0, Math.min(steps().length - 1, i));
+  if (dir === 'back') stopRun();
   closeOverlays();
-  const st = TOUR[S.tour.i]; st.prep(); render(); if (st.after) st.after();
+  const st = steps()[S.tour.i]; st.prep(dir);
+  S.tour.mark = S.threads['t-annual'].msgs.length;
+  /* A step whose action is already done waits for Next instead of skipping itself. */
+  S.tour.hold = !!(st.done && st.done());
+  render(); if (st.after) st.after();
   tourRender(); revealTarget();
 }
-function tourTarget() {
-  if (!S.tour) return null;
-  if (S.tour.mode === 'story') { const t = T(); return t ? (t.phase === 'ready' || t.phase === 'done' ? '#evidence-k-annual' : '#card-k-annual') : '#thread-msgs'; }
-  const st = TOUR[S.tour.i]; return isNarrow() && st.targetNarrow ? st.targetNarrow : st.target;
+/* Called after every render: when the person has done the step's action, move on. */
+function tourCheck() {
+  if (!S.tour || S.tour.mode !== 'tour' || S.tour.hold) return;
+  const st = steps()[S.tour.i];
+  if (!st.done || !st.done()) return;
+  S.tour.hold = true;
+  S.tour.timers.push(later(() => tourGo(S.tour.i + 1, 'fwd'), 900));
 }
+function tourTarget() {
+  if (!S.tour) return [];
+  if (S.tour.mode === 'story') return [S.tour.target];
+  const st = steps()[S.tour.i];
+  return [].concat(isNarrow() && st.targetNarrow ? st.targetNarrow : st.target);
+}
+/* Visible target elements with their rects, measured once. */
+function targets() {
+  return tourTarget().flatMap(sel => [...document.querySelectorAll(sel)]).map(el => ({ el, r: el.getBoundingClientRect() })).filter(x => x.r.width > 1 && x.r.height > 1);
+}
+let placeFrame = 0;
+function placeTour() { cancelAnimationFrame(placeFrame); placeFrame = requestAnimationFrame(tourPlace); }
 function revealTarget() {
-  const el = document.querySelector(tourTarget());
-  if (el) { const sc = el.closest('.col-body'); if (sc && !el.closest('.drawer')) el.scrollIntoView({ block: el.offsetHeight > sc.clientHeight ? 'start' : 'nearest' }); }
-  requestAnimationFrame(tourPlace);
+  const first = targets()[0];
+  if (first) { const el = first.el; const sc = el.closest('.col-body'); if (sc && !el.closest('.drawer')) el.scrollIntoView({ block: el.offsetHeight > sc.clientHeight ? 'start' : 'nearest' }); }
+  placeTour();
 }
 function tourRender() {
   const root = document.getElementById('tour-root');
@@ -1667,26 +1755,36 @@ function tourRender() {
   const story = S.tour.mode === 'story';
   let title, body, nav;
   if (story) {
-    title = S.tour.title || 'Play the story'; body = S.tour.text || '';
-    nav = '<div class="tnav"><span class="tcount">Playing automatically</span><span class="grow"></span>' + (S.tour.finished ? '<button class="btn primary sm" data-act="tour-skip">Close</button>' : '<button class="btn sm" data-act="tour-skip">Stop</button>') + '</div>';
+    title = S.tour.title; body = S.tour.text;
+    nav = '<div class="tnav"><span class="tcount">Playing automatically</span><span class="grow"></span>' + (S.tour.key === 'done' ? '<button class="btn primary sm" data-act="tour-skip">Close</button>' : '<button class="btn sm" data-act="tour-skip">Stop</button>') + '</div>';
   } else {
-    const st = TOUR[S.tour.i]; const n = TOUR.length; title = st.t; body = isNarrow() && st.bNarrow ? st.bNarrow : st.b;
-    nav = '<div class="tdots" aria-hidden="true">' + TOUR.map((_, k) => '<i class="' + (k === S.tour.i ? 'on' : '') + '"></i>').join('') + '</div>' +
+    const list = steps(); const st = list[S.tour.i]; const n = list.length; const last = S.tour.i === n - 1;
+    title = st.t; body = isNarrow() && st.bNarrow ? st.bNarrow : st.b;
+    nav = '<div class="tdots" aria-hidden="true">' + list.map((_, k) => '<i class="' + (k === S.tour.i ? 'on' : '') + '"></i>').join('') + '</div>' +
       '<div class="tnav"><button class="btn ghost sm" data-act="tour-skip">Skip</button><span class="grow"></span><span class="tcount tnum">' + (S.tour.i + 1) + ' / ' + n + '</span>' +
-      '<button class="btn sm" data-act="tour-back"' + (S.tour.i === 0 ? ' disabled' : '') + '>Back</button><button class="btn primary sm" data-act="tour-next" id="tour-next">' + (S.tour.i === n - 1 ? 'Done' : 'Next') + '</button></div>';
+      '<button class="btn sm" data-act="tour-back"' + (S.tour.i === 0 ? ' disabled' : '') + '>Back</button>' +
+      '<button class="btn primary sm" data-act="tour-next" id="tour-next">' + (last ? 'Done' : 'Next') + '</button></div>' +
+      (last && S.tour.set === 'main' ? '<button class="btn sm ghost" data-act="tour-more">' + icon('compass', 'xs') + 'More: layout, channel settings, people</button>' : '');
   }
   const dims = ['t', 'b', 'l', 'r'].map(k => '<div class="dim' + (story ? ' story' : '') + '" data-dim="' + k + '"></div>').join('');
-  root.innerHTML = (story ? '' : '<div class="tour-block"></div>') + dims + '<div class="spot" id="tour-spot"></div>' +
+  root.innerHTML = dims + '<div class="spot" id="tour-spot"></div>' +
     '<div class="tpop" id="tour-pop" role="dialog" aria-live="polite" aria-labelledby="tour-title"><h3 id="tour-title">' + esc(title) + '</h3><p>' + esc(body) + '</p>' + nav + '</div>';
-  const nb = document.getElementById('tour-next'); if (nb) nb.focus({ preventScroll: true });
+  const st = !story && steps()[S.tour.i];
+  const f = st && st.focus ? document.getElementById('composer-input') : document.getElementById('tour-next');
+  if (f) f.focus({ preventScroll: true });
 }
+/* The four dim panes surround the spotlight, so the highlighted control itself stays clickable. */
 function tourPlace() {
   if (!S.tour) return;
   const spot = document.getElementById('tour-spot'); const pop = document.getElementById('tour-pop'); if (!spot || !pop) return;
-  const el = document.querySelector(tourTarget());
   const vw = window.innerWidth, vh = window.innerHeight, pw = pop.offsetWidth, ph = pop.offsetHeight, g = 14;
-  let r = el ? el.getBoundingClientRect() : null;
-  if (r) { const top = Math.max(r.top, 4), bottom = Math.min(r.bottom, vh - 4), left = Math.max(r.left, 4), right = Math.min(r.right, vw - 4); r = { top, bottom, left, right, width: right - left, height: bottom - top }; }
+  const rects = targets().map(x => x.r);
+  let r = null;
+  if (rects.length) {
+    const top = Math.max(Math.min(...rects.map(x => x.top)), 4), bottom = Math.min(Math.max(...rects.map(x => x.bottom)), vh - 4);
+    const left = Math.max(Math.min(...rects.map(x => x.left)), 4), right = Math.min(Math.max(...rects.map(x => x.right)), vw - 4);
+    r = { top, bottom, left, right, width: right - left, height: bottom - top };
+  }
   const dim = k => document.querySelector('#tour-root [data-dim="' + k + '"]');
   const setBox = (n, l, t, w, h) => Object.assign(n.style, { left: l + 'px', top: t + 'px', width: Math.max(0, w) + 'px', height: Math.max(0, h) + 'px' });
   if (!r || r.width < 2 || r.height < 2) {
@@ -1700,57 +1798,53 @@ function tourPlace() {
   setBox(dim('l'), 0, Tp, L, Hh); setBox(dim('r'), L + W, Tp, vw - L - W, Hh);
   const clampY = y => Math.max(16, Math.min(y, vh - ph - 16)); const clampX = x => Math.max(16, Math.min(x, vw - pw - 16));
   let x, y;
-  if (isNarrow()) { x = 16; y = r.bottom + g + ph < vh - 16 ? r.bottom + g : r.top - g - ph > 16 ? r.top - g - ph : vh - ph - 16; }
+  if (isNarrow()) { x = 16; y = r.bottom + g + ph < vh - 16 ? r.bottom + g : r.top - g - ph > 16 ? r.top - g - ph : 16; }
   else if (r.right + g + pw < vw - 16) { x = r.right + g; y = clampY(r.top); }
   else if (r.left - g - pw > 16) { x = r.left - g - pw; y = clampY(r.top); }
   else if (r.bottom + g + ph < vh - 16) { x = clampX(r.left); y = r.bottom + g; }
   else if (r.top - g - ph > 16) { x = clampX(r.left); y = r.top - g - ph; }
-  else { x = clampX(r.right - pw - 16); y = vh - ph - 24; }
+  else { x = clampX(r.right - pw - 16); y = 16; }
   pop.style.left = x + 'px'; pop.style.top = y + 'px';
 }
 function endTour() {
-  /* Stopping the story also stops its run; Fast-forward on the card can still finish it. */
-  if (S.tour && S.tour.mode === 'story') { S.tour.timers.forEach(cancel); cancel(S.runTimer); S.runTimer = null; }
+  if (S.tour) {
+    S.tour.timers.forEach(cancel);
+    /* Stopping the story also stops its run; Fast-forward on the card can still finish it. */
+    if (S.tour.mode === 'story') stopRun(); else S.silent = false;
+  }
   S.tour = null; tourRender();
 }
 
 /* ---------- Play the story: runs the task scenario while the tour narrates ---------- */
-function storyLater(fn, ms) { const id = later(fn, ms); S.tour.timers.push(id); }
+function storyLater(fn, ms) { S.tour.timers.push(later(fn, ms)); }
 function playStory() {
   endTour(); S.offer = false; renderOffer(); closeOverlays();
-  resetStory(); baseView({ mtab: 'right' });
-  S.tour = { mode: 'story', timers: [], title: 'The team agreed', text: 'Kai, Masha and Emil agreed in #billing on a yearly plan at checkout, with unused days credited. Emil now hands the thread to Alfred.' };
-  render(); tourRender(); revealTarget();
-  storyLater(() => { handToAlfred('t-annual', 'emil'); render(); storyNarrate();
-    storyLater(() => { confirmTask('k-annual', 'emil'); render(); storyNarrate(); }, 4200); }, 3800);
+  resetStory(); view(Object.assign({ me: 'emil', mtab: 'right' }, annualThread));
+  S.tour = { mode: 'story', timers: [] };
+  render(); storyBeat('agreed');
+  storyLater(() => { handToAlfred('t-annual', 'emil'); afterStep();
+    storyLater(() => { confirmTask('k-annual', 'emil'); afterStep(); }, 4200); }, 3800);
 }
 const NARR = {
-  draft: ['Hand to Alfred', 'Alfred turned the thread into a task card. Emil has the Approver role in Web Shop, so his Confirm counts; Masha\'s would be refused.'],
-  design: ['Design gate', 'Before any code, the design gate checks the plan against the project\'s glossary and decisions.'],
-  executing: ['Executor at work', 'Executor works in its own session. Steps, times and changed files appear on the card as they happen.'],
-  review: ['Reviewer', 'Executor handed PR #42 to Reviewer. Every handoff is listed at the top of the card.'],
-  fixing: ['One finding', 'Reviewer found one problem and tagged its root cause, no-write-order. Executor fixes it.'],
-  ctx: ['Automatic context handoff', 'Executor\'s session reached 250k tokens. The runner saved its state and started a fresh session, and no one had to step in.'],
-  needs: ['Needs you', 'Alfred needs a price and asks Kai in the thread. Kai and Emil get a Needs you item in their Inbox, and Tasks counts one more task waiting on people.'],
-  answered: ['Answered', 'Kai answered in the thread, so the Inbox alert cleared itself and the work carries on.'],
-  final: ['Final checks', 'Tests and review run again on the last commit, 3245de5.'],
-  ready: ['Ready to merge', 'Evidence is bound to commit 3245de5: tests with no new failures against base, the review and a blind second review. Emil merges.'],
-  done: ['Done', 'Merged. Alfred posted the result in the thread and the Ready to merge alert is gone. Open Tasks or the Inbox to see where it all landed.']
+  agreed: ['The team agreed', 'Kai, Masha and Emil agreed here on a yearly plan at checkout, with unused days credited. Emil hands the thread to Alfred.', '#thread-msgs > .msg:nth-last-child(-n+3)'],
+  draft: ['Hand to Alfred', 'A draft task appears in the thread. Emil is an Approver in Web Shop, so he confirms it and the work starts.', '#card-k-annual'],
+  working: ['Work in progress', 'The card shows which step is underway and which files changed. Nobody has to chase anyone for status.', '#steps-k-annual'],
+  bug: ['A bug caught in review', 'The reviewer found a double-credit bug. You\'ll see the fix checked before merge.', '#steps-k-annual'],
+  needs: ['Alfred asks the team', 'Alfred needs the price and asks Kai in the thread. Kai and Emil get a Needs you item in their Inbox.', '#ask-k-annual'],
+  answered: ['Kai answers', 'Kai replies in the thread, the alert clears, and the work picks up again.', '#thread-msgs > .msg:nth-last-child(-n+2)'],
+  ready: ['Check the evidence', 'Tests and both reviews passed on the latest commit, 3245de5.', '#evidence-k-annual'],
+  merge: ['Merge', 'Emil is satisfied and clicks Merge.', '#merge-k-annual'],
+  done: ['Merged', 'Alfred posts the result in the thread. The task is done and the Ready to merge alert is gone.', '#thread-msgs > .msg:last-child']
 };
+/* Story beat for each script position (S.story.pos, 0 = draft card … 13 = merged). */
+const BEAT = ['draft', 'working', 'working', 'working', 'working', 'working', 'working', 'bug', 'bug', 'needs', 'answered', 'answered', 'ready', 'done'];
+function storyBeat(key) { const [title, text, target] = NARR[key]; Object.assign(S.tour, { key, title, text, target }); tourRender(); revealTarget(); }
 function storyNarrate() {
-  if (!S.tour || S.tour.mode !== 'story') return;
-  const t = T(); if (!t) return;
-  let key = t.phase;
-  const answered = !!S.story.answerBy;
-  if (t.phase === 'executing' && t.ctx) key = answered ? 'answered' : 'ctx';
-  if (t.phase === 'review' && answered) key = 'final';
-  const [title, text] = NARR[key]; S.tour.title = title; S.tour.text = text; S.tour.finished = t.phase === 'done';
-  if (t.phase === 'needs' && !S.tour.answering) {
-    S.tour.answering = true;
-    storyLater(() => { if (T().phase !== 'needs') return; post('t-annual', { by: 'kai', text: KAI_ANSWER }, true); answerQuestion('kai', KAI_ANSWER); render(); storyNarrate(); }, 5200);
-  }
-  if (t.phase === 'ready' && !S.tour.merging) { S.tour.merging = true; storyLater(() => mergeTask('k-annual', 'emil'), 5200); }
-  tourRender(); revealTarget();
+  if (!S.tour || S.tour.mode !== 'story' || !T()) return;
+  const key = BEAT[S.story.pos]; if (key === S.tour.key) return;
+  if (key === 'needs') storyLater(() => { if (T().phase === 'needs') { kaiAnswers(true); afterStep(); } }, 5200);
+  if (key === 'ready') { storyLater(() => storyBeat('merge'), 4200); storyLater(() => mergeTask('k-annual', 'emil'), 7000); }
+  storyBeat(key);
 }
 
 /* ---------- Columns ---------- */
@@ -1787,7 +1881,8 @@ document.addEventListener('click', (e) => {
     case 'col-max': S.max = S.max === a.dataset.col ? null : a.dataset.col; break;
     case 'col-hide': hideCol(a.dataset.col); break;
     case 'palette': openPalette(); return;
-    case 'tour': startTour(0); return;
+    case 'tour': startTour('main'); return;
+    case 'tour-more': startTour('more'); return;
     case 'story': playStory(); return;
     case 'reset': resetDemo(); return;
     case 'me': if (S.me !== id) { S.me = id; if (S.picker.open) closePicker(); toast({ title: 'Signed in as ' + person(id).name, body: roleIn(S.project, id) + ' in ' + projectById(S.project).name + '. Own messages show on the right.', ms: 3000 }); } break;
@@ -1800,6 +1895,8 @@ document.addEventListener('click', (e) => {
     case 'people': S.mid = 'people'; S.mtab = 'mid'; break;
     case 'thread': openThread(id); break;
     case 'chan-settings': openChanSettings(); return;
+    case 'new-thread': openNewThread(); return;
+    case 'nt-post': postNewThread(); return;
     case 'hand': handToAlfred(S.thread, S.me); break;
     case 'confirm': confirmTask(id, S.me); break;
     case 'merge': mergeTask(id, S.me); break;
@@ -1823,7 +1920,7 @@ document.addEventListener('click', (e) => {
       openThread(a.dataset.thread); break;
     }
     case 'dlg-scrim': if (e.target !== a) return; S.dialog = null; renderDialog(); return;
-    case 'dlg-cancel': S.dialog = null; renderDialog(); { const b = document.getElementById('chan-settings-btn'); if (b) b.focus(); } return;
+    case 'dlg-cancel': { const back = S.dialog.type === 'thread' ? 'new-thread-btn' : 'chan-settings-btn'; S.dialog = null; renderDialog(); const b = document.getElementById(back); if (b) b.focus(); return; }
     case 'dlg-save': saveChanSettings(); return;
     case 'sel-toggle': S.dialog.open = S.dialog.open === a.dataset.sel ? null : a.dataset.sel; renderDialog(); { const o = document.querySelector('.sel-list [aria-selected="true"]') || document.querySelector('.sel-list button'); if (o) o.focus(); } return;
     case 'sel-opt': {
@@ -1835,8 +1932,8 @@ document.addEventListener('click', (e) => {
     case 'toast-close': S.toasts = S.toasts.filter(t => String(t.id) !== id); renderToasts(); return;
     case 'toast': toast({ title: a.dataset.msg, ms: 2800 }); return;
     case 'offer-dismiss': S.offer = false; renderOffer(); return;
-    case 'tour-next': if (S.tour.i >= TOUR.length - 1) endTour(); else tourGo(S.tour.i + 1); return;
-    case 'tour-back': tourGo(S.tour.i - 1); return;
+    case 'tour-next': if (S.tour.i >= steps().length - 1) endTour(); else tourGo(S.tour.i + 1, 'fwd'); return;
+    case 'tour-back': tourGo(S.tour.i - 1, 'back'); return;
     case 'tour-skip': endTour(); return;
     case 'pal-scrim': if (e.target !== a) return; closePalette(); return;
     case 'pal-item': { const it = S.palette.items[+a.dataset.i]; closePalette(); it.run(); break; }
@@ -1857,6 +1954,7 @@ document.addEventListener('input', (e) => {
   const id = e.target.id;
   if (id === 'composer-input') { document.getElementById('send-btn').disabled = !e.target.value.trim(); e.target.style.height = 'auto'; e.target.style.height = Math.min(160, e.target.scrollHeight) + 'px'; }
   else if (id === 'model-search') { S.picker.q = e.target.value; S.picker.sel = 0; renderPickerModels(); }
+  else if (id === 'nt-title' || id === 'nt-body') { const f = newThreadFields(); document.getElementById('nt-post').disabled = !(f.title && f.body); }
   else if (id === 'pal-input') { S.palette.q = e.target.value; S.palette.sel = 0; renderPaletteList(); }
 });
 
@@ -1865,18 +1963,18 @@ document.addEventListener('keydown', (e) => {
   const tid = e.target.id; const inField = /^(INPUT|TEXTAREA)$/.test(e.target.tagName);
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); if (!S.tour) openPalette(); return; }
   if (e.key === 'Escape') {
-    if (S.tour) { endTour(); return; }
     if (S.palette) { closePalette(); return; }
     if (S.dialog && S.dialog.open) { const k = S.dialog.open; S.dialog.open = null; renderDialog(); document.getElementById('sel-' + k).focus(); return; }
     if (S.picker.open) { closePicker(true); return; }
+    if (S.tour) { endTour(); return; }
     if (S.dialog) { S.dialog = null; renderDialog(); return; }
     if (S.drawer) { S.drawer = null; render(); return; }
     if (S.offer) { S.offer = false; renderOffer(); return; }
     return;
   }
   if (S.tour && S.tour.mode === 'tour' && !inField) {
-    if (e.key === 'ArrowRight') { e.preventDefault(); if (S.tour.i < TOUR.length - 1) tourGo(S.tour.i + 1); return; }
-    if (e.key === 'ArrowLeft') { e.preventDefault(); if (S.tour.i > 0) tourGo(S.tour.i - 1); return; }
+    if (e.key === 'ArrowRight') { e.preventDefault(); if (S.tour.i < steps().length - 1) tourGo(S.tour.i + 1, 'fwd'); return; }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); if (S.tour.i > 0) tourGo(S.tour.i - 1, 'back'); return; }
   }
   if (tid === 'composer-input' && e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); doSend(); return; }
   if (tid === 'model-search') {
@@ -1896,7 +1994,7 @@ document.addEventListener('keydown', (e) => {
 
 /* Only layout depends on the viewport; crossing the phone breakpoint needs a full render. */
 let rz = 0;
-window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { applyCols(); if (S.picker.open) positionPicker(); if (S.tour) tourPlace(); }); });
+window.addEventListener('resize', () => { cancelAnimationFrame(rz); rz = requestAnimationFrame(() => { applyCols(); if (S.picker.open) positionPicker(); if (S.tour) placeTour(); }); });
 if (mqNarrow.addEventListener) mqNarrow.addEventListener('change', () => { render(); if (S.tour) tourRender(); });
 
 /* ---------- Boot ---------- */
